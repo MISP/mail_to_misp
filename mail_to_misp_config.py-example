@@ -1,0 +1,28 @@
+#!/usr/bin/python
+
+misp_url = 'YOUR_MISP_URL'
+misp_key = 'YOUR_KEY_HERE' # The MISP auth key can be found on the MISP web interface under the automation section
+misp_verifycert = True
+
+debug = True
+debug_out_file = '/tmp/mail_to_misp-debug.txt'
+nameservers = ['149.13.33.69']
+
+excludelist = ('google.com', 'microsoft.com')
+externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')
+
+# TLP tag setup
+# Tuples contain different variations of spelling
+tlptags = { 'tlp:white': [ 'tlp:white', 'tlp: white' ],
+            'tlp:green': [ 'tlp:green', 'tlp: green' ],
+            'tlp:amber': [ 'tlp:amber', 'tlp: amber' ]
+          }
+
+malwaretags = { 'locky':    [ 'ecsirt:malicious-code="ransomware"', 'misp-galaxy:ransomware="Locky"' ],
+                'dridex':   [ 'misp-galaxy:tool="dridex"' ],
+                'netwire':  [ 'Netwire RAT' ]
+              }
+# Tags to be set depending on the presence of other tags
+dependingtags = { 'tlp:white': [ 'circl:osint-feed' ]
+                }
+
