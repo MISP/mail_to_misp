@@ -1,0 +1,26 @@
+using terms from application "Mail"
+	on perform mail action with messages these_messages for rule this_rule
+		tell application "Mail"
+			set the message_count to the count of these_messages
+			repeat with i from 1 to the message_count
+				set this_message to item i of these_messages
+				
+				try
+					set this_subject to (subject of this_message) as Unicode text
+					if this_subject is "" then error
+				on error
+					set this_subject to "NO SUBJECT"
+				end try
+				
+				try
+					set this_content to (every character of content of this_message) as Unicode text
+					if this_content is in {"", "?"} then error
+				on error error_message
+					set this_content to "NO CONTENT"
+				end try
+				do shell script "/opt/local/bin/python2.7 /Users/rommelfs/Scripts/mail_to_misp/mail_to_misp.py " & quoted form of this_content & " " & quoted form of this_subject
+			end repeat
+		end tell
+	end perform mail action with messages
+end using terms from
+
