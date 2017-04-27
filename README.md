@@ -42,6 +42,9 @@ You should be able to create MISP events now.
 
 ## Requirements
 
-mail_to_misp requires access to a MISP instance (via API).
+- mail_to_misp requires access to a MISP instance (via API).
+- urlmarker from https://github.com/rcompton/ryancompton.net/blob/master/assets/praw_drugs/urlmarker.py (contained in this project)
+- defang from https://bitbucket.org/johannestaas/defang
+- Optionally patch defang/defang/__init__.py and add dirty_line = dirty_line.replace('hXXp', 'http') at line 47
 
 
