@@ -6,6 +6,7 @@ Connect your mail client to [MISP](https://github.com/MISP/MISP) in order to cre
 
 - Extraction of URLs and IP addresses (and port numbers) from free text emails
 - Extraction of hostnames from URLs
+- Extraction of hashes (MD5, SHA1, SHA256)
 - DNS expansion 
 - Custom filter list for lines containing specific words
 - Subject filters
@@ -14,6 +15,7 @@ Connect your mail client to [MISP](https://github.com/MISP/MISP) in order to cre
 - Add tags automatically based on key words (configurable)
 - Add tags automatically depending on the presence of other tags (configurable)
 - Ignore 'whitelisted' domains (configurable)
+- Configurable list of attributes not to enable the IDS flag
 - Automatically create 'external analysis' links based on filter list (e.g. VirusTotal, malwr.com)
 
 ## Implementation
