@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import urlmarker
+import hashmarker
 import sys
 import re
 from pyfaup.faup import Faup
@@ -35,7 +36,7 @@ resolver.nameservers = config.nameservers
 
 excludelist = config.excludelist
 externallist = config.externallist
-
+noidsflaglist = config.noidsflaglist
 malwaretags = config.malwaretags
 dependingtags = config.dependingtags
 
@@ -79,8 +80,8 @@ for tag in dependingtags:
 
 # Extract IOCs
 email_data = refang(email_data)
-urllist = re.findall(urlmarker.WEB_URL_REGEX,email_data)
-urllist += re.findall(urlmarker.IP_REGEX,email_data)
+urllist = re.findall(urlmarker.WEB_URL_REGEX, email_data)
+urllist += re.findall(urlmarker.IP_REGEX, email_data)
 if debug:
     target.write(str(urllist))
 
@@ -93,32 +94,57 @@ for malware in malwaretags:
         for tag in malwaretags[malware]:
             misp.add_tag(new_event, tag)
 
+# Extract and add hashes
+hashlist_md5 = re.findall(hashmarker.MD5_REGEX, email_data)
+hashlist_sha1 = re.findall(hashmarker.SHA1_REGEX, email_data)
+hashlist_sha256 = re.findall(hashmarker.SHA256_REGEX, email_data)
+
+for h in hashlist_md5:
+    misp.add_hashes(new_event, md5=h)
+for h in hashlist_sha1:
+    misp.add_hashes(new_event, sha1=h)
+for h in hashlist_sha256:
+    misp.add_hashes(new_event, sha256=h)
+
 # Add IOCs and expanded information to MISP
 for entry in urllist:
+    ids_flag = True
     f.decode(entry)
     domainname = f.get_domain().lower()
+    hostname = f.get_host().lower()
     if debug:
         target.write(domainname + "\n")
     if domainname not in excludelist:
         if domainname in externallist:
-            misp.add_named_attribute(new_event, 'link', entry, category='External analysis', to_ids=False)
+            misp.add_named_attribute(new_event, 'link', entry, category='External analysis', to_ids=ids_flag)
         else:
+            if (domainname in noidsflaglist) or (hostname in noidsflaglist):
+                ids_flag = False
             if debug:
                 target.write(entry + "\n")
-            misp.add_url(new_event, entry, category='Network activity', to_ids=True)
-            hostname = f.get_host().lower()
+                target.write(str(ids_flag))
+            if ids_flag is True:
+                misp.add_url(new_event, entry, category='Network activity', to_ids=True)
+            else:    
+                misp.add_url(new_event, entry, category='Network activity', to_ids=False)
             if debug:
                 target.write(hostname + "\n")
             port = f.get_port()
             comment = ""
             if port:
                 comment = "on port: " + str(port)
-            misp.add_hostname(new_event, hostname, comment=comment, category='Network activity', to_ids=True)
+            if ids_flag is True:
+                misp.add_hostname(new_event, hostname, comment=comment, category='Network activity', to_ids=True)
+            else:
+                misp.add_hostname(new_event, hostname, comment=comment, category='Network activity', to_ids=False)
             try:
                 for rdata in dns.resolver.query(hostname, 'A'):
                     if debug:
                         target.write(str(rdata) + "\n")
-                    misp.add_ipdst(new_event, str(rdata), category='Network activity', to_ids=True, comment=hostname)
+                    if ids_flag is True:
+                        misp.add_ipdst(new_event, str(rdata), category='Network activity', to_ids=True, comment=hostname)
+                    else:    
+                        misp.add_ipdst(new_event, str(rdata), category='Network activity', to_ids=False, comment=hostname)
             except:
                 if debug:
                     target.write("DNS unsuccessful\n")
