@@ -23,8 +23,7 @@ Connect your mail client to [MISP](https://github.com/MISP/MISP) in order to cre
 For the moment, the implemented workflow is:
 
 1. `Email -> Apple Mail -> Mail rule -> AppleScript -> python script -> PyMISP -> MISP`
-
-Thunderbird will be targeted soon.
+2. `Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> python script -> PyMISP -> MISP`
 
 ## Installation
 
