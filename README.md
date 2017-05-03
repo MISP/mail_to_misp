@@ -22,8 +22,13 @@ Connect your mail client to [MISP](https://github.com/MISP/MISP) in order to cre
 
 For the moment, the implemented workflow is:
 
-1. `Email -> Apple Mail -> Mail rule -> AppleScript -> python script -> PyMISP -> MISP`
-2. `Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> python script -> PyMISP -> MISP`
+1. Apple Mail
+
+`Email -> Apple Mail -> Mail rule -> AppleScript -> python script -> PyMISP -> MISP`
+
+2. Mozilla Thunderbird
+
+`Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> python script -> PyMISP -> MISP`
 
 ## Installation
 
@@ -49,6 +54,30 @@ For the moment, the implemented workflow is:
 
 You should be able to create MISP events now.
 
+### Outlook
+
+Outlook is not implemented due to lack of test environment. However, it should be feasible to do it this way:
+
+```
+import win32com.client
+import pythoncom
+ 
+class Handler_Class(object):
+    def OnNewMailEx(self, receivedItemsIDs):
+        for ID in receivedItemsIDs.split(","):
+            # Microsoft.Office.Interop.Outlook _MailItem properties:
+            # https://msdn.microsoft.com/en-us/library/microsoft.office.interop.outlook._mailitem_properties.aspx
+            mailItem = outlook.Session.GetItemFromID(ID)
+            print "Subj: " + mailItem.Subject
+            print "Body: " + mailItem.Body.encode( 'ascii', 'ignore' )
+            print "========"
+         
+outlook = win32com.client.DispatchWithEvents("Outlook.Application", Handler_Class)
+pythoncom.PumpMessages()
+```
+(from: https://blog.matthewurch.ca/?p=236)
+
+Obviously, you would like to filter mails based on subject or from address and pass subject and body to mail_to_misp.py in order to do something useful. Pull-requests welcome for actual implementations :) 
 
 
 ## Requirements
