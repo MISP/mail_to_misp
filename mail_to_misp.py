@@ -43,6 +43,7 @@ dependingtags = config.dependingtags
 # Ignore lines in body of message
 email_data = re.sub(".*From: .*\n?","", email_data)
 email_data = re.sub(".*Sender: .*\n?","", email_data)
+email_data = re.sub(".*Received: .*\n?","", email_data)
 email_data = re.sub(".*Sender IP: .*\n?","", email_data)
 email_data = re.sub(".*Reply-To: .*\n?","", email_data)
 email_data = re.sub(".*Registrar WHOIS Server: .*\n?","", email_data)
@@ -116,7 +117,7 @@ for entry in urllist:
         target.write(domainname + "\n")
     if domainname not in excludelist:
         if domainname in externallist:
-            misp.add_named_attribute(new_event, 'link', entry, category='External analysis', to_ids=ids_flag)
+            misp.add_named_attribute(new_event, 'link', entry, category='External analysis', to_ids=False)
         else:
             if (domainname in noidsflaglist) or (hostname in noidsflaglist):
                 ids_flag = False
