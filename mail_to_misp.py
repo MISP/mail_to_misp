@@ -39,6 +39,7 @@ externallist = config.externallist
 noidsflaglist = config.noidsflaglist
 malwaretags = config.malwaretags
 dependingtags = config.dependingtags
+tlptag_default = config.tlptag_default
 
 # Ignore lines in body of message
 email_data = re.sub(".*From: .*\n?","", email_data)
@@ -62,6 +63,7 @@ def init(url, key):
     return PyMISP(url, key, misp_verifycert, 'json')
 
 # Evaluate classification
+tlp_tag = tlptag_default
 tlptags = config.tlptags
 for tag in tlptags:
     for alternativetag in tlptags[tag]:
