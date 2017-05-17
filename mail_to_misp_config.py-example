@@ -10,6 +10,10 @@ nameservers = ['149.13.33.69']
 
 excludelist = ('google.com', 'microsoft.com')
 externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')
+noidsflaglist = ('myexternalip.com', 'ipinfo.io', 'icanhazip.com', 'wtfismyip.com', 'ipecho.net', 'api.ipify.org', 'checkip.amazonaws.com', 'whatismyipaddress.com', 'google.com', 'dropbox.com')
+
+# Stop parsing when this term is found
+stopword = 'Whois & IP Information'
 
 # TLP tag setup
 # Tuples contain different variations of spelling
