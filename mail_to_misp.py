@@ -40,6 +40,7 @@ noidsflaglist = config.noidsflaglist
 malwaretags = config.malwaretags
 dependingtags = config.dependingtags
 tlptag_default = config.tlptag_default
+stopword = config.stopword
 
 # Ignore lines in body of message
 email_data = re.sub(".*From: .*\n?","", email_data)
@@ -82,6 +83,7 @@ for tag in dependingtags:
             misp.add_tag(new_event, dependingtag)
 
 # Extract IOCs
+email_data = email_data.split(stopword, 1)[0]
 email_data = refang(email_data)
 urllist = re.findall(urlmarker.WEB_URL_REGEX, email_data)
 urllist += re.findall(urlmarker.IP_REGEX, email_data)
