@@ -41,6 +41,7 @@ malwaretags = config.malwaretags
 dependingtags = config.dependingtags
 tlptag_default = config.tlptag_default
 stopword = config.stopword
+hash_only_tags = config.hash_only_tags
 
 # Ignore lines in body of message
 email_data = re.sub(".*From: .*\n?","", email_data)
@@ -110,6 +111,10 @@ for h in hashlist_sha1:
     misp.add_hashes(new_event, sha1=h)
 for h in hashlist_sha256:
     misp.add_hashes(new_event, sha256=h)
+
+if (len(hashlist_md5) > 0) or (len(hashlist_sha1) > 0) or (len(hashlist_sha256) > 0):
+    for tag in hash_only_tags:
+        misp.add_tag(new_event, tag)
 
 # Add IOCs and expanded information to MISP
 for entry in urllist:
