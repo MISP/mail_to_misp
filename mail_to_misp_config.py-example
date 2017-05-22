@@ -30,3 +30,5 @@ malwaretags = { 'locky':    [ 'ecsirt:malicious-code="ransomware"', 'misp-galaxy
 dependingtags = { 'tlp:white': [ 'circl:osint-feed' ]
                 }
 
+# Tags to add when hashes are found (e.g. to do automatic expansion)
+hash_only_tags = { 'TODO:VT-ENRICHMENT' }
