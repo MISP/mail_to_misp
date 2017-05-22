@@ -133,28 +133,19 @@ for entry in urllist:
             if debug:
                 target.write(entry + "\n")
                 target.write(str(ids_flag))
-            if ids_flag is True:
-                misp.add_url(new_event, entry, category='Network activity', to_ids=True)
-            else:    
-                misp.add_url(new_event, entry, category='Network activity', to_ids=False)
+            misp.add_url(new_event, entry, category='Network activity', to_ids=ids_flag)
             if debug:
                 target.write(hostname + "\n")
             port = f.get_port()
             comment = ""
             if port:
                 comment = "on port: " + str(port)
-            if ids_flag is True:
-                misp.add_hostname(new_event, hostname, comment=comment, category='Network activity', to_ids=True)
-            else:
-                misp.add_hostname(new_event, hostname, comment=comment, category='Network activity', to_ids=False)
+            misp.add_hostname(new_event, hostname, comment=comment, category='Network activity', to_ids=ids_flag)
             try:
                 for rdata in dns.resolver.query(hostname, 'A'):
                     if debug:
                         target.write(str(rdata) + "\n")
-                    if ids_flag is True:
-                        misp.add_ipdst(new_event, str(rdata), category='Network activity', to_ids=True, comment=hostname)
-                    else:    
-                        misp.add_ipdst(new_event, str(rdata), category='Network activity', to_ids=False, comment=hostname)
+                    misp.add_ipdst(new_event, str(rdata), category='Network activity', to_ids=ids_flag, comment=hostname)
             except:
                 if debug:
                     target.write("DNS unsuccessful\n")
