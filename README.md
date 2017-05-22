@@ -14,7 +14,9 @@ Connect your mail client to [MISP](https://github.com/MISP/MISP) in order to cre
 - Refanging of URLs ('hxxp://...')
 - Add tags automatically based on key words (configurable)
 - Add tags automatically depending on the presence of other tags (configurable)
+- Add tags automatically depending on presence of hashes (e.g. for automatic expansion)
 - Ignore 'whitelisted' domains (configurable)
+- Specify a stop word term to no further process input
 - Configurable list of attributes not to enable the IDS flag
 - Automatically create 'external analysis' links based on filter list (e.g. VirusTotal, malwr.com)
 
