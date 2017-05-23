@@ -97,6 +97,9 @@ Obviously, you would like to filter mails based on subject or from address and p
 
 3. Configure mail_to_misp_config.py
 
+You should now be able to send your IoC-containing mails to misp_handler@YOURDOMAIN.
+
+
 ## Requirements
 
 ### General
