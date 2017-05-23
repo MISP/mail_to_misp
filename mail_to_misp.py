@@ -28,7 +28,8 @@ try:
     for part in msg.walk():
         if part.get_content_maintype() == 'multipart':
             continue
-        email_data += part.get_payload(decode=True)
+        if part.get_content_maintype() == 'text':
+            email_data += part.get_payload(decode=True)
     email_subject += mail_subject
     stdin_used = True
 except Exception as e:
