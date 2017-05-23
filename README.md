@@ -90,9 +90,11 @@ Obviously, you would like to filter mails based on subject or from address and p
 1. Setup a new email address in the aliases file (e.g. /etc/aliases) and configure the correct path:
 
 `misp_handler: "|/path/to/mail_to_misp.py"`
+
 2. Rebuild the DB:
 
 `$ sudo newaliases`
+
 3. Configure mail_to_misp_config.py
 
 ## Requirements
