@@ -9,15 +9,36 @@ from pymisp import PyMISP
 from defang import refang
 import dns.resolver
 import mail_to_misp_config as config
+import email
+from email.generator import Generator
 
 debug = config.debug
+stdin_used = False
 if debug:
     debug_out_file = config.debug_out_file
     target = open(debug_out_file, 'w')
     target.write("New debug session opened")
+
 try:
-    email_data = str(sys.argv[1])
-    email_subject = str(sys.argv[2])
+    email_subject = "M2M - "
+    email_data = ""
+    mailcontent = "".join(sys.stdin)
+    msg = email.message_from_string(mailcontent)
+    mail_subject = msg.get('Subject')
+    for part in msg.walk():
+        if part.get_content_maintype() == 'multipart':
+            continue
+        email_data += part.get_payload(decode=True)
+    email_subject += mail_subject
+    stdin_used = True
+except Exception as e:
+    print e
+    pass
+
+try:
+    if not stdin_used:
+        email_data = str(sys.argv[1])
+        email_subject = str(sys.argv[2])
 except:
     if debug:
         target.write("FATAL ERROR: Not all required input received")
