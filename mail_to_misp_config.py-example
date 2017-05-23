@@ -4,7 +4,7 @@ misp_url = 'YOUR_MISP_URL'
 misp_key = 'YOUR_KEY_HERE' # The MISP auth key can be found on the MISP web interface under the automation section
 misp_verifycert = True
 
-debug = True
+debug = False
 debug_out_file = '/tmp/mail_to_misp-debug.txt'
 nameservers = ['149.13.33.69']
 
