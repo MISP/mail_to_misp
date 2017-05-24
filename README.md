@@ -1,6 +1,6 @@
 # mail_to_misp
 
-Connect your mail client to [MISP](https://github.com/MISP/MISP) in order to create events based on the information contained within mails.
+Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in order to create events based on the information contained within mails.
 
 ## Features
 
