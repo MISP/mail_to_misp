@@ -21,6 +21,7 @@ tlptags = { 'tlp:white': [ 'tlp:white', 'tlp: white' ],
             'tlp:green': [ 'tlp:green', 'tlp: green' ],
             'tlp:amber': [ 'tlp:amber', 'tlp: amber' ]
           }
+tlptag_default = sorted(tlptags.keys())[-1]
 
 malwaretags = { 'locky':    [ 'ecsirt:malicious-code="ransomware"', 'misp-galaxy:ransomware="Locky"' ],
                 'dridex':   [ 'misp-galaxy:tool="dridex"' ],
