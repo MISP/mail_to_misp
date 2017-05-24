@@ -26,11 +26,15 @@ For the moment, the implemented workflow is:
 
 1. Apple Mail
 
-`Email -> Apple Mail -> Mail rule -> AppleScript -> python script -> PyMISP -> MISP`
+`Email -> Apple Mail -> Mail rule -> AppleScript -> mail_to_misp -> PyMISP -> MISP`
 
 2. Mozilla Thunderbird
 
-`Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> python script -> PyMISP -> MISP`
+`Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> mail_to_misp -> PyMISP -> MISP`
+
+3. Postfix and others
+
+`Email -> mail_to_misp`
 
 ## Installation
 
@@ -80,6 +84,20 @@ pythoncom.PumpMessages()
 (from: https://blog.matthewurch.ca/?p=236)
 
 Obviously, you would like to filter mails based on subject or from address and pass subject and body to mail_to_misp.py in order to do something useful. Pull-requests welcome for actual implementations :) 
+
+### Postfix (or other MTA)
+
+1. Setup a new email address in the aliases file (e.g. /etc/aliases) and configure the correct path:
+
+`misp_handler: "|/path/to/mail_to_misp.py"`
+
+2. Rebuild the DB:
+
+`$ sudo newaliases`
+
+3. Configure mail_to_misp_config.py
+
+You should now be able to send your IoC-containing mails to misp_handler@YOURDOMAIN.
 
 
 ## Requirements
