@@ -13,6 +13,28 @@ import mail_to_misp_config as config
 import email
 from email.generator import Generator
 import tempfile
+import socket
+
+def is_valid_ipv4_address(address):
+    try:
+        socket.inet_pton(socket.AF_INET, address)
+    except AttributeError:  # no inet_pton here, sorry
+        try:
+            socket.inet_aton(address)
+        except socket.error:
+            return False
+        return address.count('.') == 3
+    except socket.error:  # not a valid address
+        return False
+
+    return True
+
+def is_valid_ipv6_address(address):
+    try:
+        socket.inet_pton(socket.AF_INET6, address)
+    except socket.error:  # not a valid address
+        return False
+    return True
 
 debug = config.debug
 stdin_used = False
@@ -110,8 +132,10 @@ for tag in dependingtags:
 # Extract IOCs
 email_data = email_data.split(stopword, 1)[0]
 email_data = refang(email_data.decode('utf-8', 'ignore'))
-urllist = re.findall(urlmarker.WEB_URL_REGEX, email_data)
+urllist = list() 
+urllist += re.findall(urlmarker.WEB_URL_REGEX, email_data)
 urllist += re.findall(urlmarker.IP_REGEX, email_data)
+print (urllist)
 if debug:
     target.write(str(urllist))
 
@@ -144,8 +168,9 @@ if (len(hashlist_md5) > 0) or (len(hashlist_sha1) > 0) or (len(hashlist_sha256) 
 for entry in urllist:
     ids_flag = True
     f.decode(entry)
-    domainname = f.get_domain().lower()
-    hostname = f.get_host().lower()
+    domainname = f.get_domain()
+    hostname = f.get_host()
+    print (hostname)
     if debug:
         target.write(domainname + "\n")
     if domainname not in excludelist:
@@ -157,22 +182,28 @@ for entry in urllist:
             if debug:
                 target.write(entry + "\n")
                 target.write(str(ids_flag))
-            misp.add_url(new_event, entry, category='Network activity', to_ids=ids_flag)
-            if debug:
-                target.write(hostname + "\n")
-            port = f.get_port()
-            comment = ""
-            if port:
-                comment = "on port: " + str(port)
-            misp.add_hostname(new_event, hostname.decode('utf-8', 'ignore'), comment=comment, category='Network activity', to_ids=ids_flag)
-            try:
-                for rdata in dns.resolver.query(hostname, 'A'):
-                    if debug:
-                        target.write(str(rdata) + "\n")
-                    misp.add_ipdst(new_event, str(rdata), category='Network activity', to_ids=ids_flag, comment=hostname)
-            except:
+            if hostname:
+                misp.add_url(new_event, entry, category='Network activity', to_ids=ids_flag)
                 if debug:
-                    target.write("DNS unsuccessful\n")
+                    target.write(hostname + "\n")
+                port = f.get_port()
+                comment = ""
+                if port:
+                    comment = "on port: " + str(port)
+                
+                if is_valid_ipv4_address(hostname.decode('utf-8', 'ignore')):
+                    misp.add_ipdst(new_event, hostname.decode('utf-8', 'ignore'), comment=comment, category='Network activity', to_ids=ids_flag)
+                else:
+                    misp.add_hostname(new_event, hostname.decode('utf-8', 'ignore'), comment=comment, category='Network activity', to_ids=ids_flag)
+                try:
+                    for rdata in dns.resolver.query(hostname.decode('utf-8', 'ignore'), 'A'):
+                        if debug:
+                            target.write(str(rdata) + "\n")
+                        misp.add_ipdst(new_event, rdata.to_text(), category='Network activity', to_ids=ids_flag, comment=hostname.decode('utf-8', 'ignore'))
+                except Exception as e:
+                    print (e)
+                    if debug:
+                        target.write("DNS unsuccessful\n")
 if debug:
     target.close()
  
