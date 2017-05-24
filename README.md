@@ -1,6 +1,6 @@
 # mail_to_misp
 
-Connect your mail client to [MISP](https://github.com/MISP/MISP) in order to create events based on the information contained within mails.
+Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in order to create events based on the information contained within mails.
 
 ## Features
 
@@ -105,9 +105,10 @@ You should now be able to send your IoC-containing mails to misp_handler@YOURDOM
 ### General
 
 - mail_to_misp requires access to a MISP instance (via API).
+- Python 3
 - urlmarker from https://github.com/rcompton/ryancompton.net/blob/master/assets/praw_drugs/urlmarker.py (contained in this project)
 - defang from https://bitbucket.org/johannestaas/defang
-- Optionally patch defang/defang/__init__.py and add dirty_line = dirty_line.replace('hXXp', 'http') at line 47
+- Optionally patch defang/defang/__init__.py and add dirty_line = dirty_line.replace('hxxp', 'http') at line 47
 
 ### Thunderbird
 
