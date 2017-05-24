@@ -184,14 +184,16 @@ for entry in urllist:
                 target.write(entry + "\n")
                 target.write(str(ids_flag))
             if hostname:
-                misp.add_url(new_event, entry, category='Network activity', to_ids=ids_flag)
+                if is_valid_ipv4_address(entry):
+                    misp.add_url(new_event, entry, category='Network activity', to_ids=False)
+                else:
+                    misp.add_url(new_event, entry, category='Network activity', to_ids=ids_flag)
                 if debug:
                     target.write(hostname + "\n")
                 port = f.get_port()
                 comment = ""
                 if port:
                     comment = "on port: " + str(port)
-                
                 if is_valid_ipv4_address(hostname.decode('utf-8', 'ignore')):
                     misp.add_ipdst(new_event, hostname.decode('utf-8', 'ignore'), comment=comment, category='Network activity', to_ids=False)
                 else:
@@ -200,7 +202,7 @@ for entry in urllist:
                     for rdata in dns.resolver.query(hostname.decode('utf-8', 'ignore'), 'A'):
                         if debug:
                             target.write(str(rdata) + "\n")
-                        misp.add_ipdst(new_event, rdata.to_text(), category='Network activity', to_ids=ids_flag, comment=hostname.decode('utf-8', 'ignore'))
+                        misp.add_ipdst(new_event, rdata.to_text(), category='Network activity', to_ids=False, comment=hostname.decode('utf-8', 'ignore'))
                 except Exception as e:
                     print (e)
                     if debug:
@@ -218,5 +220,5 @@ if stdin_used:
             _, output_path = tempfile.mkstemp()
             output = open(output_path, 'wb')
             output.write(part.get_payload(decode=True))
-            misp.add_attachment(new_event, output_path, name=filename, comment=filename, category='Artifacts dropped', to_ids=True) 
+            misp.upload_sample(event_id=new_event, filepath=output_path, filename=filename, category='Artifacts dropped', to_ids=True) 
             output.close()
