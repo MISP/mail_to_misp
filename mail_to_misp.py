@@ -193,7 +193,7 @@ for entry in urllist:
                     comment = "on port: " + str(port)
                 
                 if is_valid_ipv4_address(hostname.decode('utf-8', 'ignore')):
-                    misp.add_ipdst(new_event, hostname.decode('utf-8', 'ignore'), comment=comment, category='Network activity', to_ids=ids_flag)
+                    misp.add_ipdst(new_event, hostname.decode('utf-8', 'ignore'), comment=comment, category='Network activity', to_ids=False)
                 else:
                     misp.add_hostname(new_event, hostname.decode('utf-8', 'ignore'), comment=comment, category='Network activity', to_ids=ids_flag)
                 try:
