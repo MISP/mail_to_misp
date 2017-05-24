@@ -218,5 +218,5 @@ if stdin_used:
             _, output_path = tempfile.mkstemp()
             output = open(output_path, 'wb')
             output.write(part.get_payload(decode=True))
-            misp.add_attachment(new_event, output_path, name=filename, comment=filename, category='Artifacts dropped') 
+            misp.add_attachment(new_event, output_path, name=filename, comment=filename, category='Artifacts dropped', to_ids=True) 
             output.close()
