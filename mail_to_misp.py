@@ -44,26 +44,27 @@ if debug:
     target.write("New debug session opened")
 
 try:
-    email_subject = b'M2M - '
-    email_data = b''
-    mailcontent = "".join(sys.stdin)
-    msg = email.message_from_string(mailcontent)
-    mail_subject = msg.get('Subject').encode()
-    for part in msg.walk():
-        if part.get_content_maintype() == 'multipart':
-            continue
-        if part.get_content_maintype() == 'text':
-            email_data += part.get_payload(decode=True)
-    email_subject += mail_subject
-    stdin_used = True
+    if not sys.stdin.isatty():
+        email_subject = b'M2M - '
+        email_data = b''
+        mailcontent = "".join(sys.stdin)
+        msg = email.message_from_string(mailcontent)
+        mail_subject = msg.get('Subject').encode()
+        for part in msg.walk():
+            if part.get_content_maintype() == 'multipart':
+                continue
+            if part.get_content_maintype() == 'text':
+                email_data += part.get_payload(decode=True)
+        email_subject += mail_subject
+        stdin_used = True
 except Exception as e:
     print(e)
     pass
 
 try:
     if not stdin_used:
-        email_data = str(sys.argv[1])
-        email_subject = str(sys.argv[2])
+        email_data = sys.argv[1].encode()
+        email_subject = sys.argv[2].encode()
 except:
     if debug:
         target.write("FATAL ERROR: Not all required input received")
