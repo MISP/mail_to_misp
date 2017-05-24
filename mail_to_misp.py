@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
 import urlmarker
 import hashmarker
@@ -11,6 +12,7 @@ import dns.resolver
 import mail_to_misp_config as config
 import email
 from email.generator import Generator
+import tempfile
 
 debug = config.debug
 stdin_used = False
@@ -20,11 +22,11 @@ if debug:
     target.write("New debug session opened")
 
 try:
-    email_subject = "M2M - "
-    email_data = ""
+    email_subject = b'M2M - '
+    email_data = b''
     mailcontent = "".join(sys.stdin)
     msg = email.message_from_string(mailcontent)
-    mail_subject = msg.get('Subject')
+    mail_subject = msg.get('Subject').encode()
     for part in msg.walk():
         if part.get_content_maintype() == 'multipart':
             continue
@@ -33,7 +35,7 @@ try:
     email_subject += mail_subject
     stdin_used = True
 except Exception as e:
-    print e
+    print(e)
     pass
 
 try:
@@ -66,21 +68,21 @@ stopword = config.stopword
 hash_only_tags = config.hash_only_tags
 
 # Ignore lines in body of message
-email_data = re.sub(".*From: .*\n?","", email_data)
-email_data = re.sub(".*Sender: .*\n?","", email_data)
-email_data = re.sub(".*Received: .*\n?","", email_data)
-email_data = re.sub(".*Sender IP: .*\n?","", email_data)
-email_data = re.sub(".*Reply-To: .*\n?","", email_data)
-email_data = re.sub(".*Registrar WHOIS Server: .*\n?","", email_data)
-email_data = re.sub(".*Registrar: .*\n?","", email_data)
-email_data = re.sub(".*Domain Status: .*\n?","", email_data)
-email_data = re.sub(".*Registrant Email: .*\n?","", email_data)
-email_data = re.sub(".*IP Location: .*\n?","", email_data)
+email_data = re.sub(b".*From: .*\n?",b"", email_data)
+email_data = re.sub(b".*Sender: .*\n?",b"", email_data)
+email_data = re.sub(b".*Received: .*\n?",b"", email_data)
+email_data = re.sub(b".*Sender IP: .*\n?",b"", email_data)
+email_data = re.sub(b".*Reply-To: .*\n?",b"", email_data)
+email_data = re.sub(b".*Registrar WHOIS Server: .*\n?",b"", email_data)
+email_data = re.sub(b".*Registrar: .*\n?",b"", email_data)
+email_data = re.sub(b".*Domain Status: .*\n?",b"", email_data)
+email_data = re.sub(b".*Registrant Email: .*\n?",b"", email_data)
+email_data = re.sub(b".*IP Location: .*\n?",b"", email_data)
 
 # Remove tags from subject
-email_subject = re.sub("[\(\[].*?[\)\]]", "", email_subject)
+email_subject = re.sub(b"[\(\[].*?[\)\]]", b"", email_subject)
 # Remove "Re: " from subject
-email_subject = re.sub("Re: ", "", email_subject)
+email_subject = re.sub(b"Re: ", b"", email_subject)
 
 
 def init(url, key):
@@ -91,12 +93,12 @@ tlp_tag = tlptag_default
 tlptags = config.tlptags
 for tag in tlptags:
     for alternativetag in tlptags[tag]:
-        if alternativetag in email_data.lower():
+        if alternativetag.encode() in email_data.lower():
             tlp_tag = tag
 
 # Create the MISP event
 misp = init(misp_url, misp_key)
-new_event = misp.new_event(info=email_subject, distribution=0, threat_level_id=3, analysis=1)
+new_event = misp.new_event(info=email_subject.decode('utf-8', 'ignore'), distribution=0, threat_level_id=3, analysis=1)
 misp.add_tag(new_event, tlp_tag)
 
 # Add additional tags depending on others
@@ -107,7 +109,7 @@ for tag in dependingtags:
 
 # Extract IOCs
 email_data = email_data.split(stopword, 1)[0]
-email_data = refang(email_data)
+email_data = refang(email_data.decode('utf-8', 'ignore'))
 urllist = re.findall(urlmarker.WEB_URL_REGEX, email_data)
 urllist += re.findall(urlmarker.IP_REGEX, email_data)
 if debug:
@@ -118,7 +120,7 @@ f = Faup()
 
 # Add tags according to configuration
 for malware in malwaretags:
-    if malware in email_subject.lower():
+    if malware.encode() in email_subject.lower():
         for tag in malwaretags[malware]:
             misp.add_tag(new_event, tag)
 
@@ -162,7 +164,7 @@ for entry in urllist:
             comment = ""
             if port:
                 comment = "on port: " + str(port)
-            misp.add_hostname(new_event, hostname, comment=comment, category='Network activity', to_ids=ids_flag)
+            misp.add_hostname(new_event, hostname.decode('utf-8', 'ignore'), comment=comment, category='Network activity', to_ids=ids_flag)
             try:
                 for rdata in dns.resolver.query(hostname, 'A'):
                     if debug:
@@ -173,4 +175,16 @@ for entry in urllist:
                     target.write("DNS unsuccessful\n")
 if debug:
     target.close()
-  
+ 
+# Try to add attachments
+if stdin_used:
+    for part in msg.walk():
+        if part.get_content_maintype() == 'multipart':
+            continue
+        if part.get_content_maintype() != 'text':
+            filename = part.get_filename()
+            _, output_path = tempfile.mkstemp()
+            output = open(output_path, 'wb')
+            output.write(part.get_payload(decode=True))
+            misp.add_attachment(new_event, output_path, name=filename, comment=filename, category='Artifacts dropped') 
+            output.close()
