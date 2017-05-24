@@ -18,7 +18,7 @@ using terms from application "Mail"
 				on error error_message
 					set this_content to "NO CONTENT"
 				end try
-				do shell script "/opt/local/bin/python2.7 /Users/rommelfs/Scripts/mail_to_misp/mail_to_misp.py " & quoted form of this_content & " " & quoted form of this_subject
+				do shell script "/Library/Frameworks/Python.framework/Versions/3.4/bin/python3 /Users/rommelfs/Scripts/mail_to_misp/mail_to_misp.py " & quoted form of this_content & " " & quoted form of this_subject
 			end repeat
 		end tell
 	end perform mail action with messages
