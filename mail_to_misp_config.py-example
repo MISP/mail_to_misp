@@ -8,12 +8,13 @@ debug = False
 debug_out_file = '/tmp/mail_to_misp-debug.txt'
 nameservers = ['149.13.33.69']
 
-excludelist = ('google.com', 'microsoft.com')
-externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')
-noidsflaglist = ('myexternalip.com', 'ipinfo.io', 'icanhazip.com', 'wtfismyip.com', 'ipecho.net', 'api.ipify.org', 'checkip.amazonaws.com', 'whatismyipaddress.com', 'google.com', 'dropbox.com')
+excludelist = (b'google.com', b'microsoft.com')
+externallist = (b'virustotal.com', b'malwr.com', b'hybrid-analysis.com', b'emergingthreats.net')
+internallist = (b'internal.system.local')
+noidsflaglist = (b'myexternalip.com', b'ipinfo.io', b'icanhazip.com', b'wtfismyip.com', b'ipecho.net', b'api.ipify.org', b'checkip.amazonaws.com', b'whatismyipaddress.com', b'google.com', b'dropbox.com')
 
 # Stop parsing when this term is found
-stopword = 'Whois & IP Information'
+stopword = b'Whois & IP Information'
 
 # TLP tag setup
 # Tuples contain different variations of spelling

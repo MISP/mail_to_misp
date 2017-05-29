@@ -83,6 +83,7 @@ resolver.nameservers = config.nameservers
 
 excludelist = config.excludelist
 externallist = config.externallist
+internallist = config.internallist
 noidsflaglist = config.noidsflaglist
 malwaretags = config.malwaretags
 dependingtags = config.dependingtags
@@ -141,9 +142,12 @@ position = 99999
 t_email_data = email_data
 for identifier in forward_identifiers:
     new_position = email_data.find(identifier)
+    if new_position == -1:
+        new_position = position
     if new_position < position:
         t_before, t_split, t_email_data = email_data.partition(identifier)
         position = new_position
+        print(position)
 email_data = t_email_data
 
 # Refang email data
@@ -194,7 +198,9 @@ for entry in urllist:
     if debug:
         target.write(domainname + "\n")
     if domainname not in excludelist:
-        if domainname in externallist:
+        if domainname in internallist:
+            misp.add_named_attribute(new_event, 'link', entry, category='Internal reference', to_ids=False, distribution=0)
+        elif domainname in externallist:
             misp.add_named_attribute(new_event, 'link', entry, category='External analysis', to_ids=False)
         else:
             if (domainname in noidsflaglist) or (hostname in noidsflaglist):
