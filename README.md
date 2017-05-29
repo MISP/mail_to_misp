@@ -108,6 +108,8 @@ You should now be able to send your IoC-containing mails to misp_handler@YOURDOM
 - Python 3
 - urlmarker from https://github.com/rcompton/ryancompton.net/blob/master/assets/praw_drugs/urlmarker.py (contained in this project)
 - defang from https://bitbucket.org/johannestaas/defang
+- Patch defang/defang/__init__.py by commenting out the following line (not used && not compatible with Python 3):
+`from urllib2 import urlparse`
 - Optionally patch defang/defang/__init__.py and add dirty_line = dirty_line.replace('hxxp', 'http') at line 47
 
 ### Thunderbird
