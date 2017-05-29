@@ -19,6 +19,8 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Specify a stop word term to no further process input
 - Configurable list of attributes not to enable the IDS flag
 - Automatically create 'external analysis' links based on filter list (e.g. VirusTotal, malwr.com)
+- Automatically create 'internal reference' links based on filter list
+- Detection of forwarded messages
 
 ## Implementation
 
