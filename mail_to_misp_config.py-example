@@ -17,9 +17,9 @@ stopword = 'Whois & IP Information'
 
 # TLP tag setup
 # Tuples contain different variations of spelling
-tlptags = { 'tlp:white': [ 'tlp:white', 'tlp: white' ],
-            'tlp:green': [ 'tlp:green', 'tlp: green' ],
-            'tlp:amber': [ 'tlp:amber', 'tlp: amber' ]
+tlptags = { 'tlp:white': [ 'tlp:white', 'tlp: white', 'tlp white' ],
+            'tlp:green': [ 'tlp:green', 'tlp: green', 'tlp green' ],
+            'tlp:amber': [ 'tlp:amber', 'tlp: amber', 'tlp amber' ]
           }
 tlptag_default = sorted(tlptags.keys())[-1]
 
