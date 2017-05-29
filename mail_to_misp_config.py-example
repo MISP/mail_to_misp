@@ -1,5 +1,5 @@
-#!/usr/bin/python
 
+print ("hello")
 misp_url = 'YOUR_MISP_URL'
 misp_key = 'YOUR_KEY_HERE' # The MISP auth key can be found on the MISP web interface under the automation section
 misp_verifycert = True
@@ -22,7 +22,7 @@ tlptags = { 'tlp:amber': [ 'tlp:amber', 'tlp: amber', 'tlp amber' ],
             'tlp:green': [ 'tlp:green', 'tlp: green', 'tlp green' ],
             'tlp:white': [ 'tlp:white', 'tlp: white', 'tlp white' ]
           }
-tlptag_default = sorted(tlptags.keys())[-1]
+tlptag_default = sorted(tlptags.keys())[0]
 
 malwaretags = { 'locky':    [ 'ecsirt:malicious-code="ransomware"', 'misp-galaxy:ransomware="Locky"' ],
                 'dridex':   [ 'misp-galaxy:tool="dridex"' ],
@@ -37,3 +37,4 @@ forward_identifiers = { b'-------- Forwarded Message --------', b'Begin forwarde
 
 # Tags to add when hashes are found (e.g. to do automatic expansion)
 hash_only_tags = { 'TODO:VT-ENRICHMENT' }
+
