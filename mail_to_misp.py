@@ -220,5 +220,5 @@ if stdin_used:
             _, output_path = tempfile.mkstemp()
             output = open(output_path, 'wb')
             output.write(part.get_payload(decode=True))
-            misp.upload_sample(event_id=new_event, filepath=output_path, filename=filename, category='Artifacts dropped', to_ids=True) 
+            misp.upload_sample(filename, output_path, new_event, distribution=None, to_ids=True, category=None, comment=None, info='My Info', analysis=None, threat_level_id=None) 
             output.close()
