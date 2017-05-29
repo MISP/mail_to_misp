@@ -89,6 +89,7 @@ dependingtags = config.dependingtags
 tlptag_default = config.tlptag_default
 stopword = config.stopword
 hash_only_tags = config.hash_only_tags
+forward_identifiers = config.forward_identifiers
 
 # Ignore lines in body of message
 email_data = re.sub(b".*From: .*\n?",b"", email_data)
@@ -130,9 +131,27 @@ for tag in dependingtags:
         for dependingtag in dependingtags[tag]:
             misp.add_tag(new_event, dependingtag)
 
-# Extract IOCs
+## Prepare extraction of IOCs
+
+# Limit the input if the stopword is found
 email_data = email_data.split(stopword, 1)[0]
+
+# Find the first forwarding message and use that content
+position = 99999
+t_email_data = email_data
+for identifier in forward_identifiers:
+    new_position = email_data.find(identifier)
+    if new_position < position:
+        t_before, t_split, t_email_data = email_data.partition(identifier)
+        position = new_position
+email_data = t_email_data
+
+# Refang email data
 email_data = refang(email_data.decode('utf-8', 'ignore'))
+
+
+## Extract various IOCs
+
 urllist = list() 
 urllist += re.findall(urlmarker.WEB_URL_REGEX, email_data)
 urllist += re.findall(urlmarker.IP_REGEX, email_data)
