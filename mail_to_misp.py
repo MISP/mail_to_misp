@@ -104,10 +104,12 @@ email_data = re.sub(b".*Domain Status: .*\n?",b"", email_data)
 email_data = re.sub(b".*Registrant Email: .*\n?",b"", email_data)
 email_data = re.sub(b".*IP Location: .*\n?",b"", email_data)
 
-# Remove tags from subject
+# Remove "[tags]" from subject
 email_subject = re.sub(b"[\(\[].*?[\)\]]", b"", email_subject)
 # Remove "Re: " from subject
 email_subject = re.sub(b"Re: ", b"", email_subject)
+# Remove "Fwd: " from subject
+email_subject = re.sub(b"Fwd: ", b"", email_subject)
 
 
 def init(url, key):
