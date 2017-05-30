@@ -85,6 +85,8 @@ excludelist = config.excludelist
 externallist = config.externallist
 internallist = config.internallist
 noidsflaglist = config.noidsflaglist
+ignorelist = config.ignorelist
+removelist = config.removelist
 malwaretags = config.malwaretags
 dependingtags = config.dependingtags
 tlptag_default = config.tlptag_default
@@ -93,24 +95,12 @@ hash_only_tags = config.hash_only_tags
 forward_identifiers = config.forward_identifiers
 
 # Ignore lines in body of message
-email_data = re.sub(b".*From: .*\n?",b"", email_data)
-email_data = re.sub(b".*Sender: .*\n?",b"", email_data)
-email_data = re.sub(b".*Received: .*\n?",b"", email_data)
-email_data = re.sub(b".*Sender IP: .*\n?",b"", email_data)
-email_data = re.sub(b".*Reply-To: .*\n?",b"", email_data)
-email_data = re.sub(b".*Registrar WHOIS Server: .*\n?",b"", email_data)
-email_data = re.sub(b".*Registrar: .*\n?",b"", email_data)
-email_data = re.sub(b".*Domain Status: .*\n?",b"", email_data)
-email_data = re.sub(b".*Registrant Email: .*\n?",b"", email_data)
-email_data = re.sub(b".*IP Location: .*\n?",b"", email_data)
+for ignoreline in ignorelist:
+    email_data = re.sub(ignoreline, b"", email_data)
 
-# Remove "[tags]" from subject
-email_subject = re.sub(b"[\(\[].*?[\)\]]", b"", email_subject)
-# Remove "Re: " from subject
-email_subject = re.sub(b"Re: ", b"", email_subject)
-# Remove "Fwd: " from subject
-email_subject = re.sub(b"Fwd: ", b"", email_subject)
-
+# Remove words from subject
+for removeword in removelist:
+    email_subject = re.sub(removeword, b"", email_subject)
 
 def init(url, key):
     return PyMISP(url, key, misp_verifycert, 'json')

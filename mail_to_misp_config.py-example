@@ -17,6 +17,14 @@ noidsflaglist = (b'myexternalip.com', b'ipinfo.io', b'icanhazip.com', b'wtfismyi
 # Stop parsing when this term is found
 stopword = b'Whois & IP Information'
 
+# Ignore lines in body of message containing:
+ignorelist = (b".*From: .*\n?", b".*Sender: .*\n?", b".*Received: .*\n?", b".*Sender IP: .*\n?",
+                    b".*Reply-To: .*\n?", b".*Registrar WHOIS Server: .*\n?", b".*Registrar: .*\n?",
+                    b".*Domain Status: .*\n?", b".*Registrant Email: .*\n?", b".*IP Location: .*\n?")
+
+# Remove "[tags]", "Re: ", "Fwd: " from subject
+removelist = (b"[\(\[].*?[\)\]]", b"Re: ", b"Fwd: ")
+
 # TLP tag setup
 # Tuples contain different variations of spelling
 tlptags = { 'tlp:amber': [ 'tlp:amber', 'tlp: amber', 'tlp amber' ],
