@@ -23,6 +23,7 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Detection of forwarded messages
 - Process attachments as malware samples
 - Logging to syslog
+- Remove "[tags]", "Re:" and "Fwd:" from subjects
 
 ## Implementation
 
