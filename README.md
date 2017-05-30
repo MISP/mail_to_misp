@@ -21,6 +21,8 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Automatically create 'external analysis' links based on filter list (e.g. VirusTotal, malwr.com)
 - Automatically create 'internal reference' links based on filter list
 - Detection of forwarded messages
+- Process attachments as malware samples
+- Logging to syslog
 
 ## Implementation
 
