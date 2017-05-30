@@ -5,8 +5,8 @@ misp_key = 'YOUR_KEY_HERE' # The MISP auth key can be found on the MISP web inte
 misp_verifycert = True
 
 debug = False
-debug_out_file = '/tmp/mail_to_misp-debug.txt'
 nameservers = ['149.13.33.69']
+email_subject_prefix = b'M2M - '
 
 excludelist = (b'google.com', b'microsoft.com')
 externallist = (b'virustotal.com', b'malwr.com', b'hybrid-analysis.com', b'emergingthreats.net')

@@ -14,6 +14,10 @@ import email
 from email.generator import Generator
 import tempfile
 import socket
+import syslog
+
+syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
+
 
 def is_valid_ipv4_address(address):
     try:
@@ -38,14 +42,10 @@ def is_valid_ipv6_address(address):
 
 debug = config.debug
 stdin_used = False
-if debug:
-    debug_out_file = config.debug_out_file
-    target = open(debug_out_file, 'w')
-    target.write("New debug session opened")
 
+email_subject = config.email_subject_prefix
 try:
     if not sys.stdin.isatty():
-        email_subject = b'M2M - '
         email_data = b''
         mailcontent = "".join(sys.stdin)
         msg = email.message_from_string(mailcontent)
@@ -67,12 +67,12 @@ try:
         email_subject = sys.argv[2].encode()
 except:
     if debug:
-        target.write("FATAL ERROR: Not all required input received")
+        syslog.syslog("FATAL ERROR: Not all required input received")
     sys.exit(1)
 
 if debug:    
-    target.write(email_subject)
-    target.write(email_data)
+    syslog.syslog(str(email_subject))
+    syslog.syslog(str(email_data))
 
 misp_url = config.misp_url
 misp_key = config.misp_key
@@ -147,7 +147,6 @@ for identifier in forward_identifiers:
     if new_position < position:
         t_before, t_split, t_email_data = email_data.partition(identifier)
         position = new_position
-        print(position)
 email_data = t_email_data
 
 # Refang email data
@@ -159,9 +158,8 @@ email_data = refang(email_data.decode('utf-8', 'ignore'))
 urllist = list() 
 urllist += re.findall(urlmarker.WEB_URL_REGEX, email_data)
 urllist += re.findall(urlmarker.IP_REGEX, email_data)
-print (urllist)
 if debug:
-    target.write(str(urllist))
+    syslog.syslog(str(urllist))
 
 # Init Faup
 f = Faup()
@@ -194,9 +192,8 @@ for entry in urllist:
     f.decode(entry)
     domainname = f.get_domain()
     hostname = f.get_host()
-    print (hostname)
     if debug:
-        target.write(domainname + "\n")
+        syslog.syslog(domainname.decode("utf-8", "ignore"))
     if domainname not in excludelist:
         if domainname in internallist:
             misp.add_named_attribute(new_event, 'link', entry, category='Internal reference', to_ids=False, distribution=0)
@@ -206,15 +203,14 @@ for entry in urllist:
             if (domainname in noidsflaglist) or (hostname in noidsflaglist):
                 ids_flag = False
             if debug:
-                target.write(entry + "\n")
-                target.write(str(ids_flag))
+                syslog.syslog(str(entry))
             if hostname:
                 if is_valid_ipv4_address(entry):
                     misp.add_url(new_event, entry, category='Network activity', to_ids=False)
                 else:
                     misp.add_url(new_event, entry, category='Network activity', to_ids=ids_flag)
                 if debug:
-                    target.write(hostname + "\n")
+                    syslog.syslog(hostname.decode("utf-8", "ignore"))
                 port = f.get_port()
                 comment = ""
                 if port:
@@ -226,14 +222,12 @@ for entry in urllist:
                 try:
                     for rdata in dns.resolver.query(hostname.decode('utf-8', 'ignore'), 'A'):
                         if debug:
-                            target.write(str(rdata) + "\n")
+                            syslog.syslog(str(rdata))
                         misp.add_ipdst(new_event, rdata.to_text(), category='Network activity', to_ids=False, comment=hostname.decode('utf-8', 'ignore'))
                 except Exception as e:
                     print (e)
                     if debug:
-                        target.write("DNS unsuccessful\n")
-if debug:
-    target.close()
+                        syslog.syslog("DNS unsuccessful")
  
 # Try to add attachments
 if stdin_used:
