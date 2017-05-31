@@ -9,13 +9,15 @@ from pyfaup.faup import Faup
 from pymisp import PyMISP
 from defang import refang
 import dns.resolver
-import mail_to_misp_config as config
 import email
 from email.generator import Generator
 import tempfile
 import socket
 import syslog
 import ftfy
+import os
+configfile = os.path.basename(sys.argv[0]).split(".py")[0] + "_config"
+config = __import__(configfile)
 
 syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
 def is_valid_ipv4_address(address):
@@ -237,7 +239,7 @@ for entry in urllist:
                         misp.add_ipdst(new_event, rdata.to_text(), category='Network activity', to_ids=False, comment=hostname)
                 except Exception as e:
                     if debug:
-                        syslog.syslog("DNS unsuccessful for: {0}".format(str(rdata)))
+                        syslog.syslog(str(e))
  
 # Try to add attachments
 if stdin_used:
