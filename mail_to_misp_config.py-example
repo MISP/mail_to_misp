@@ -8,6 +8,7 @@ misp_verifycert = True
 debug = False
 nameservers = ['149.13.33.69']
 email_subject_prefix = b'M2M - '
+attach_original_mail = True
 
 excludelist = ('google.com', 'microsoft.com')
 externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')

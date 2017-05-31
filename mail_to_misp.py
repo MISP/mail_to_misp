@@ -107,6 +107,7 @@ tlptag_default = config.tlptag_default
 stopword = config.stopword
 hash_only_tags = config.hash_only_tags
 forward_identifiers = config.forward_identifiers
+attach_original_mail = config.attach_original_mail
 
 original_email_data = email_data
 
@@ -134,8 +135,8 @@ misp = init(misp_url, misp_key)
 new_event = misp.new_event(info=email_subject, distribution=0, threat_level_id=3, analysis=1)
 misp.add_tag(new_event, tlp_tag)
 
-#if original_email_data:
-#    misp.add_named_attribute(new_event, 'email-body', original_email_data.decode('utf-8', 'ignore'), to_ids=False)
+if attach_original_mail and original_email_data:
+    misp.add_named_attribute(new_event, 'email-body', original_email_data, category='Payload delivery', to_ids=False)
 # Add additional tags depending on others
 for tag in dependingtags:
     if tag in tlp_tag:
