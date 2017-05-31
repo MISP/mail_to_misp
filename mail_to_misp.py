@@ -15,10 +15,9 @@ from email.generator import Generator
 import tempfile
 import socket
 import syslog
+import ftfy
 
 syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
-
-
 def is_valid_ipv4_address(address):
     try:
         socket.inet_pton(socket.AF_INET, address)
@@ -47,32 +46,47 @@ email_subject = config.email_subject_prefix
 try:
     if not sys.stdin.isatty():
         email_data = b''
-        mailcontent = "".join(sys.stdin)
+        mailcontent = sys.stdin.buffer.read().decode("utf-8", "ignore")
+        syslog.syslog(mailcontent)
         msg = email.message_from_string(mailcontent)
-        mail_subject = msg.get('Subject').encode()
+        mail_subject = msg.get('Subject').encode("utf-8", "ignore")
         for part in msg.walk():
+            if part.get_content_charset() is None:
+                # This could probably be detected
+                charset = 'utf-8' 
+            else:
+                charset = part.get_content_charset()
             if part.get_content_maintype() == 'multipart':
                 continue
             if part.get_content_maintype() == 'text':
+                part.set_charset(charset)
                 email_data += part.get_payload(decode=True)
         email_subject += mail_subject
         stdin_used = True
 except Exception as e:
-    print(e)
+    syslog.syslog("EXCEPTION")
+    syslog.syslog(str(e))
     pass
 
 try:
     if not stdin_used:
-        email_data = sys.argv[1].encode()
-        email_subject = sys.argv[2].encode()
+        email_data = sys.argv[1]
+        email_subject = sys.argv[2]
 except:
     if debug:
         syslog.syslog("FATAL ERROR: Not all required input received")
     sys.exit(1)
 
+if debug:
+    syslog.syslog("Encoding of subject: {0}".format(ftfy.guess_bytes(email_subject)[1]))
+    syslog.syslog("Encoding of body: {0}".format(ftfy.guess_bytes(email_data)[1]))
+
+email_data = ftfy.fix_text(email_data.decode("utf-8", "ignore"))
+email_subject = ftfy.fix_text(email_subject.decode("utf-8", "ignore"))
+
 if debug:    
-    syslog.syslog(str(email_subject))
-    syslog.syslog(str(email_data))
+    syslog.syslog(email_subject)
+    syslog.syslog(email_data)
 
 misp_url = config.misp_url
 misp_key = config.misp_key
@@ -94,13 +108,15 @@ stopword = config.stopword
 hash_only_tags = config.hash_only_tags
 forward_identifiers = config.forward_identifiers
 
+original_email_data = email_data
+
 # Ignore lines in body of message
 for ignoreline in ignorelist:
-    email_data = re.sub(ignoreline, b"", email_data)
+    email_data = re.sub(ignoreline, "", email_data)
 
 # Remove words from subject
 for removeword in removelist:
-    email_subject = re.sub(removeword, b"", email_subject)
+    email_subject = re.sub(removeword, "", email_subject)
 
 def init(url, key):
     return PyMISP(url, key, misp_verifycert, 'json')
@@ -110,14 +126,16 @@ tlp_tag = tlptag_default
 tlptags = config.tlptags
 for tag in tlptags:
     for alternativetag in tlptags[tag]:
-        if alternativetag.encode() in email_data.lower():
+        if alternativetag in email_data.lower():
             tlp_tag = tag
 
 # Create the MISP event
 misp = init(misp_url, misp_key)
-new_event = misp.new_event(info=email_subject.decode('utf-8', 'ignore'), distribution=0, threat_level_id=3, analysis=1)
+new_event = misp.new_event(info=email_subject, distribution=0, threat_level_id=3, analysis=1)
 misp.add_tag(new_event, tlp_tag)
 
+#if original_email_data:
+#    misp.add_named_attribute(new_event, 'email-body', original_email_data.decode('utf-8', 'ignore'), to_ids=False)
 # Add additional tags depending on others
 for tag in dependingtags:
     if tag in tlp_tag:
@@ -142,7 +160,7 @@ for identifier in forward_identifiers:
 email_data = t_email_data
 
 # Refang email data
-email_data = refang(email_data.decode('utf-8', 'ignore'))
+email_data = refang(email_data)
 
 
 ## Extract various IOCs
@@ -158,7 +176,7 @@ f = Faup()
 
 # Add tags according to configuration
 for malware in malwaretags:
-    if malware.encode() in email_subject.lower():
+    if malware in email_subject.lower():
         for tag in malwaretags[malware]:
             misp.add_tag(new_event, tag)
 
@@ -182,10 +200,10 @@ if (len(hashlist_md5) > 0) or (len(hashlist_sha1) > 0) or (len(hashlist_sha256) 
 for entry in urllist:
     ids_flag = True
     f.decode(entry)
-    domainname = f.get_domain()
-    hostname = f.get_host()
+    domainname = f.get_domain().decode('utf-8', 'ignore')
+    hostname = f.get_host().decode('utf-8', 'ignore')
     if debug:
-        syslog.syslog(domainname.decode("utf-8", "ignore"))
+        syslog.syslog(domainname)
     if domainname not in excludelist:
         if domainname in internallist:
             misp.add_named_attribute(new_event, 'link', entry, category='Internal reference', to_ids=False, distribution=0)
@@ -202,24 +220,23 @@ for entry in urllist:
                 else:
                     misp.add_url(new_event, entry, category='Network activity', to_ids=ids_flag)
                 if debug:
-                    syslog.syslog(hostname.decode("utf-8", "ignore"))
+                    syslog.syslog(hostname)
                 port = f.get_port()
                 comment = ""
                 if port:
                     comment = "on port: " + str(port)
-                if is_valid_ipv4_address(hostname.decode('utf-8', 'ignore')):
-                    misp.add_ipdst(new_event, hostname.decode('utf-8', 'ignore'), comment=comment, category='Network activity', to_ids=False)
+                if is_valid_ipv4_address(hostname):
+                    misp.add_ipdst(new_event, hostname, comment=comment, category='Network activity', to_ids=False)
                 else:
-                    misp.add_hostname(new_event, hostname.decode('utf-8', 'ignore'), comment=comment, category='Network activity', to_ids=ids_flag)
+                    misp.add_hostname(new_event, hostname, comment=comment, category='Network activity', to_ids=ids_flag)
                 try:
-                    for rdata in dns.resolver.query(hostname.decode('utf-8', 'ignore'), 'A'):
+                    for rdata in dns.resolver.query(hostname, 'A'):
                         if debug:
                             syslog.syslog(str(rdata))
-                        misp.add_ipdst(new_event, rdata.to_text(), category='Network activity', to_ids=False, comment=hostname.decode('utf-8', 'ignore'))
+                        misp.add_ipdst(new_event, rdata.to_text(), category='Network activity', to_ids=False, comment=hostname)
                 except Exception as e:
-                    print (e)
                     if debug:
-                        syslog.syslog("DNS unsuccessful")
+                        syslog.syslog("DNS unsuccessful for: {0}".format(str(rdata)))
  
 # Try to add attachments
 if stdin_used:
@@ -233,3 +250,5 @@ if stdin_used:
             output.write(part.get_payload(decode=True))
             misp.upload_sample(filename, output_path, new_event, distribution=None, to_ids=True, category=None, comment=None, info='My Info', analysis=None, threat_level_id=None) 
             output.close()
+
+syslog.syslog("Job finished.")

@@ -9,21 +9,25 @@ debug = False
 nameservers = ['149.13.33.69']
 email_subject_prefix = b'M2M - '
 
-excludelist = (b'google.com', b'microsoft.com')
-externallist = (b'virustotal.com', b'malwr.com', b'hybrid-analysis.com', b'emergingthreats.net')
-internallist = (b'internal.system.local')
-noidsflaglist = (b'myexternalip.com', b'ipinfo.io', b'icanhazip.com', b'wtfismyip.com', b'ipecho.net', b'api.ipify.org', b'checkip.amazonaws.com', b'whatismyipaddress.com', b'google.com', b'dropbox.com')
+excludelist = ('google.com', 'microsoft.com')
+externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')
+internallist = ('internal.system.local')
+noidsflaglist = (   'myexternalip.com', 'ipinfo.io', 'icanhazip.com', 'wtfismyip.com', 'ipecho.net', 
+                    'api.ipify.org', 'checkip.amazonaws.com', 'whatismyipaddress.com', 'google.com', 
+                    'dropbox.com'
+                )
 
 # Stop parsing when this term is found
 stopword = b'Whois & IP Information'
 
 # Ignore lines in body of message containing:
-ignorelist = (b".*From: .*\n?", b".*Sender: .*\n?", b".*Received: .*\n?", b".*Sender IP: .*\n?",
-                    b".*Reply-To: .*\n?", b".*Registrar WHOIS Server: .*\n?", b".*Registrar: .*\n?",
-                    b".*Domain Status: .*\n?", b".*Registrant Email: .*\n?", b".*IP Location: .*\n?")
+ignorelist = (  ".*From: .*\n?", ".*Sender: .*\n?", ".*Received: .*\n?", ".*Sender IP: .*\n?",
+                ".*Reply-To: .*\n?", ".*Registrar WHOIS Server: .*\n?", ".*Registrar: .*\n?",
+                ".*Domain Status: .*\n?", ".*Registrant Email: .*\n?", ".*IP Location: .*\n?"
+            )
 
 # Remove "[tags]", "Re: ", "Fwd: " from subject
-removelist = (b"[\(\[].*?[\)\]]", b"Re: ", b"Fwd: ")
+removelist = ("[\(\[].*?[\)\]]", "Re: ", "Fwd: ")
 
 # TLP tag setup
 # Tuples contain different variations of spelling
