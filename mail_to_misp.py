@@ -82,18 +82,29 @@ except Exception as e:
 try:
     if not stdin_used:
         email_data = sys.argv[1]
-        email_subject = sys.argv[2]
+        if len(sys.argv) < 3:
+            #email_subject = "(No Subject)"
+            msg = email.message_from_string(email_data)
+            email_subject = msg.get('Subject').encode("utf-8", "ignore") 
+        else:
+            email_subject = sys.argv[2]
 except:
     if debug:
         syslog.syslog("FATAL ERROR: Not all required input received")
     sys.exit(1)
 
-if debug:
-    syslog.syslog("Encoding of subject: {0}".format(ftfy.guess_bytes(email_subject)[1]))
-    syslog.syslog("Encoding of body: {0}".format(ftfy.guess_bytes(email_data)[1]))
+#if debug:
+#    syslog.syslog("Encoding of subject: {0}".format(ftfy.guess_bytes(email_subject)[1]))
+#    syslog.syslog("Encoding of body: {0}".format(ftfy.guess_bytes(email_data)[1]))
 
-email_data = ftfy.fix_text(email_data.decode("utf-8", "ignore"))
-email_subject = ftfy.fix_text(email_subject.decode("utf-8", "ignore"))
+try:
+    email_data = ftfy.fix_text(email_data.decode("utf-8", "ignore"))
+except:
+    email_data = ftfy.fix_text(email_data)
+try:
+    email_subject = ftfy.fix_text(email_subject.decode("utf-8", "ignore"))
+except:
+    email_subject = ftfy.fix_text(email_subject)
 
 if debug:    
     syslog.syslog(email_subject)
