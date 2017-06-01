@@ -80,10 +80,7 @@ for part in msg.walk():
         continue
     if part.get_content_maintype() == 'text':
         part.set_charset(charset)
-        try:
-            syslog.syslog(str(part.get_payload(decode=True))
-        except Exception as e:
-            syslog.syslog(str(e))
+        syslog.syslog(str(part.get_payload(decode=True)))
         email_data += part.get_payload(decode=True)        
 print("here")
 email_subject += mail_subject
