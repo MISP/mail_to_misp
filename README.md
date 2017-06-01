@@ -108,6 +108,8 @@ You should now be able to send your IoC-containing mails to misp_handler@YOURDOM
 
 ### Fake-SMTPD spamtrap
 
+If you want to process all incoming junk mails automatically and collect the contained information in a (separate?) MISP instance, you could use the fake_smtp.py script. It listens on port 25, accepts all mails and pushes them through mail_to_misp to a MISP instance.
+
 1. Configure mail_to_misp_config.py
 
 2. Run fake_smtp.py (as root)
