@@ -24,6 +24,8 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Process attachments as malware samples
 - Logging to syslog
 - Remove "[tags]", "Re:" and "Fwd:" from subjects
+- Optionally attach entire mail to event
+- Contains now a fake-smtpd spamtrap which delivers IoCs/mails to MISP
 
 ## Implementation
 
@@ -104,6 +106,13 @@ Obviously, you would like to filter mails based on subject or from address and p
 
 You should now be able to send your IoC-containing mails to misp_handler@YOURDOMAIN.
 
+### Fake-SMTPD spamtrap
+
+1. Configure mail_to_misp_config.py
+
+2. Run fake_smtp.py (as root)
+
+`sudo python3 fake_smtp.py`
 
 ## Requirements
 
