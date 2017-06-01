@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -60,7 +60,7 @@ try:
     else:
         mailcontent = sys.argv[1]
         if len(sys.argv) >= 3:
-            email_subject = sys.argv[2]
+            mail_subject = sys.argv[2]
     email_data = b''
     syslog.syslog(mailcontent)
     msg = email.message_from_string(mailcontent)
@@ -76,11 +76,13 @@ try:
         if part.get_content_maintype() == 'text':
             part.set_charset(charset)
             email_data += part.get_payload(decode=True)        
+    print("here")
     email_subject += mail_subject
     stdin_used = True
 except Exception as e:
     if debug:
         syslog.syslog("FATAL ERROR: Not all required input received")
+        print(str(e))
         syslog.syslog(str(e))
     sys.exit(1)
 
