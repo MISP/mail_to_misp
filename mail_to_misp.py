@@ -1,23 +1,32 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import urlmarker
-import hashmarker
-import sys
-import re
-from pyfaup.faup import Faup
-from pymisp import PyMISP
-from defang import refang
-import dns.resolver
-import email
-from email.generator import Generator
-import tempfile
-import socket
-import syslog
-import ftfy
 import os
-configfile = os.path.basename(sys.argv[0]).split(".py")[0] + "_config"
-config = __import__(configfile)
+import sys
+try:
+    configfile = os.path.basename(sys.argv[0]).split(".py")[0] + "_config"
+except Exception as e:
+    print("Couldn't locate config file {0}".format(configfile))
+    sys.exit(-1)
+try:
+    import urlmarker
+    import hashmarker
+    import re
+    from pyfaup.faup import Faup
+    from pymisp import PyMISP
+    from defang import refang
+    import dns.resolver
+    import email
+    from email.generator import Generator
+    import tempfile
+    import socket
+    import syslog
+    import ftfy
+    config = __import__(configfile)
+except ImportError as e:
+    print("(!) Problem loading module:")
+    print(e)
+    sys.exit(-1)
 
 syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
 def is_valid_ipv4_address(address):
