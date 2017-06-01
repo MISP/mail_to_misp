@@ -54,37 +54,46 @@ debug = config.debug
 stdin_used = False
 
 email_subject = config.email_subject_prefix
-try:
-    if not sys.stdin.isatty():
-        mailcontent = sys.stdin.buffer.read().decode("utf-8", "ignore")
-    else:
-        mailcontent = sys.argv[1]
-        if len(sys.argv) >= 3:
-            mail_subject = sys.argv[2]
-    email_data = b''
+#try:
+    #if not sys.stdin.isatty():
+if len(sys.argv) == 1:
+    mailcontent = sys.stdin.buffer.read().decode("utf-8", "ignore")
+else:
+    mailcontent = sys.argv[1]
     syslog.syslog(mailcontent)
-    msg = email.message_from_string(mailcontent)
-    mail_subject = msg.get('Subject').encode("utf-8", "ignore")
-    for part in msg.walk():
-        if part.get_content_charset() is None:
-            # This could probably be detected
-            charset = 'utf-8' 
-        else:
-            charset = part.get_content_charset()
-        if part.get_content_maintype() == 'multipart':
-            continue
-        if part.get_content_maintype() == 'text':
-            part.set_charset(charset)
-            email_data += part.get_payload(decode=True)        
-    print("here")
-    email_subject += mail_subject
-    stdin_used = True
-except Exception as e:
-    if debug:
-        syslog.syslog("FATAL ERROR: Not all required input received")
-        print(str(e))
-        syslog.syslog(str(e))
-    sys.exit(1)
+    if len(sys.argv) >= 3:
+        mail_subject = sys.argv[2]
+email_data = b''
+msg = email.message_from_string(mailcontent)
+if not mail_subject:
+    try:
+        mail_subject = msg.get('Subject').encode("utf-8", "ignore")
+    except:
+        pass
+for part in msg.walk():
+    if part.get_content_charset() is None:
+        # This could probably be detected
+        charset = 'utf-8' 
+    else:
+        charset = part.get_content_charset()
+    if part.get_content_maintype() == 'multipart':
+        continue
+    if part.get_content_maintype() == 'text':
+        part.set_charset(charset)
+        try:
+            syslog.syslog(str(part.get_payload(decode=True))
+        except Exception as e:
+            syslog.syslog(str(e))
+        email_data += part.get_payload(decode=True)        
+print("here")
+email_subject += mail_subject
+stdin_used = True
+#except Exception as e:
+#    if debug:
+#        syslog.syslog("FATAL ERROR: Not all required input received")
+#        print(str(e))
+#        syslog.syslog(str(e))
+#    sys.exit(1)
 
 #if debug:
 #    syslog.syslog("Encoding of subject: {0}".format(ftfy.guess_bytes(email_subject)[1]))
