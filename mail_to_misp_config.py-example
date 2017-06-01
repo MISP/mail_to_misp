@@ -10,6 +10,16 @@ nameservers = ['149.13.33.69']
 email_subject_prefix = b'M2M - '
 attach_original_mail = True
 
+# Paths (should be automatic)
+bindir = os.path.dirname(os.path.realpath(__file__))
+cfgdir = os.path.dirname(os.path.realpath(__file__))
+scriptname = 'mail_to_misp.py'
+binpath = os.path.join(bindir, scriptname)
+
+# for the SPAM trap
+smtp_addr = "127.0.0.1"
+smtp_port = 25
+
 excludelist = ('google.com', 'microsoft.com')
 externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')
 internallist = ('internal.system.local')
