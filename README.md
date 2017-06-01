@@ -111,6 +111,7 @@ You should now be able to send your IoC-containing mails to misp_handler@YOURDOM
 
 - mail_to_misp requires access to a MISP instance (via API).
 - Python 3
+- faup from https://github.com/stricaud/faup
 - urlmarker from https://github.com/rcompton/ryancompton.net/blob/master/assets/praw_drugs/urlmarker.py (contained in this project)
 - ftfy from https://github.com/LuminosoInsight/python-ftfy (to fix unicode text)
 - defang from https://bitbucket.org/johannestaas/defang
