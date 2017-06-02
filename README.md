@@ -114,7 +114,7 @@ If you want to process all incoming junk mails automatically and collect the con
 
 2. Run fake_smtp.py (as root)
 
-`sudo python3 fake_smtp.py`
+`$ sudo python3 fake_smtp.py`
 
 ## Requirements
 
