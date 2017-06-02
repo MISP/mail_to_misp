@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import sys
+import tempfile
 try:
     configfile = os.path.basename(sys.argv[0]).split(".py")[0] + "_config"
 except Exception as e:
@@ -28,7 +29,11 @@ class CustomSMTPServer(smtpd.SMTPServer):
         print('Message addressed from: {0}'.format(mailfrom))
         print('Message addressed to  : {0}'.format(rcpttos))
         print('Message length        : {0}'.format(len(data)))
-        subprocess.call([binpath, data])
+        tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
+        tf.write(data)
+        tf.close()
+        subprocess.call([binpath, "-r", tf.name])
+        os.unlink(tf.name)
         return
 
 server = CustomSMTPServer((smtp_addr, smtp_port), None)
