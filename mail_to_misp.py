@@ -54,6 +54,7 @@ debug = config.debug
 stdin_used = False
 
 email_subject = config.email_subject_prefix
+mail_subject = ""
 #try:
     #if not sys.stdin.isatty():
 if len(sys.argv) == 1:
