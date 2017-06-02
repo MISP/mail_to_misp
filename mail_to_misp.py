@@ -63,7 +63,7 @@ else:
     mailcontent = sys.argv[1]
     syslog.syslog(mailcontent)
     if len(sys.argv) >= 3:
-        mail_subject = sys.argv[2]
+        mail_subject = sys.argv[2].encode("utf-8", "ignore")
 email_data = b''
 msg = email.message_from_string(mailcontent)
 if not mail_subject:
@@ -83,8 +83,10 @@ for part in msg.walk():
         part.set_charset(charset)
         syslog.syslog(str(part.get_payload(decode=True)))
         email_data += part.get_payload(decode=True)        
-print("here")
-email_subject += mail_subject
+try:
+    email_subject += mail_subject
+except Exception as e:
+    syslog.syslog(str(e))
 stdin_used = True
 #except Exception as e:
 #    if debug:
