@@ -273,7 +273,8 @@ if stdin_used:
             _, output_path = tempfile.mkstemp()
             output = open(output_path, 'wb')
             output.write(part.get_payload(decode=True))
-            misp.upload_sample(filename, output_path, new_event, distribution=None, to_ids=True, category=None, comment=None, info='My Info', analysis=None, threat_level_id=None) 
+            event_id = new_event['Event']['id']
+            misp.upload_sample(filename, output_path, event_id, distribution=None, to_ids=True, category=None, comment=None, info='My Info', analysis=None, threat_level_id=None) 
             output.close()
 
 syslog.syslog("Job finished.")
