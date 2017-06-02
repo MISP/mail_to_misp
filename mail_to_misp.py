@@ -60,10 +60,18 @@ mail_subject = ""
 if len(sys.argv) == 1:
     mailcontent = sys.stdin.buffer.read().decode("utf-8", "ignore")
 else:
-    mailcontent = sys.argv[1]
-    syslog.syslog(mailcontent)
-    if len(sys.argv) >= 3:
-        mail_subject = sys.argv[2].encode("utf-8", "ignore")
+    # read from tempfile
+    if sys.argv[1] == "-r":
+        tempfilename = sys.argv[2]
+        tf = open(tempfilename, 'r')
+        mailcontent = tf.read()
+        tf.close()
+    # receive data and subject through arguments
+    else:
+        mailcontent = sys.argv[1]
+        syslog.syslog(mailcontent)
+        if len(sys.argv) >= 3:
+            mail_subject = sys.argv[2].encode("utf-8", "ignore")
 email_data = b''
 msg = email.message_from_string(mailcontent)
 if not mail_subject:
