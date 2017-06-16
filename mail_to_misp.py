@@ -235,6 +235,10 @@ for entry in urllist:
     f.decode(entry)
     domainname = f.get_domain().decode('utf-8', 'ignore')
     hostname = f.get_host().decode('utf-8', 'ignore')
+    try:
+        schema = f.get_scheme().decode('utf-8', 'ignore')
+    except:
+        schema = False
     if debug:
         syslog.syslog(domainname)
     if domainname not in excludelist:
@@ -248,10 +252,11 @@ for entry in urllist:
             if debug:
                 syslog.syslog(str(entry))
             if hostname:
-                if is_valid_ipv4_address(entry):
-                    misp.add_url(new_event, entry, category='Network activity', to_ids=False)
-                else:
-                    misp.add_url(new_event, entry, category='Network activity', to_ids=ids_flag)
+                if schema:
+                    if is_valid_ipv4_address(hostname):
+                        misp.add_url(new_event, entry, category='Network activity', to_ids=False)
+                    else:
+                        misp.add_url(new_event, entry, category='Network activity', to_ids=ids_flag)
                 if debug:
                     syslog.syslog(hostname)
                 port = f.get_port()
