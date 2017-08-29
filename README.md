@@ -66,7 +66,9 @@ If you want to process all incoming junk mails automatically and collect the con
 
 1. Configure mail_to_misp_config.py
 
-2. Run fake_smtp.py (as root)
+2. ln -s  mail_to_misp_config.py fake_smtp_config.py
+
+3. Run fake_smtp.py (as root)
 
 `$ sudo python3 fake_smtp.py`
 
