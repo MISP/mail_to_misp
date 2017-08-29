@@ -34,10 +34,10 @@ noidsflaglist = (   'myexternalip.com', 'ipinfo.io', 'icanhazip.com', 'wtfismyip
 stopword = b'Whois & IP Information'
 
 # Ignore lines in body of message containing:
-ignorelist = (  ".*From: .*\n?", ".*Sender: .*\n?", ".*Received: .*\n?", ".*Sender IP: .*\n?",
-                ".*Reply-To: .*\n?", ".*Registrar WHOIS Server: .*\n?", ".*Registrar: .*\n?",
-                ".*Domain Status: .*\n?", ".*Registrant Email: .*\n?", ".*IP Location: .*\n?"
-            )
+ignorelist = (".*From: .*\n?", ".*Sender: .*\n?", ".*Received: .*\n?", ".*Sender IP: .*\n?",
+                    ".*Reply-To: .*\n?", ".*Registrar WHOIS Server: .*\n?", ".*Registrar: .*\n?",
+                    ".*Domain Status: .*\n?", ".*Registrant Email: .*\n?", ".*IP Location: .*\n?",
+                    ".*X-Get-Message-Sender-Via: .*\n?", ".*X-Authenticated-Sender: .*\n")
 
 # Remove "[tags]", "Re: ", "Fwd: " from subject
 removelist = ("[\(\[].*?[\)\]]", "Re: ", "Fwd: ")
