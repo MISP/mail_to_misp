@@ -31,7 +31,7 @@ noidsflaglist = (   'myexternalip.com', 'ipinfo.io', 'icanhazip.com', 'wtfismyip
                 )
 
 # Stop parsing when this term is found
-stopword = b'Whois & IP Information'
+stopword = 'Whois & IP Information'
 
 # Ignore lines in body of message containing:
 ignorelist = (".*From: .*\n?", ".*Sender: .*\n?", ".*Received: .*\n?", ".*Sender IP: .*\n?",
@@ -51,15 +51,21 @@ tlptags = { 'tlp:amber': [ 'tlp:amber', 'tlp: amber', 'tlp amber' ],
 tlptag_default = sorted(tlptags.keys())[0]
 
 malwaretags = { 'locky':    [ 'ecsirt:malicious-code="ransomware"', 'misp-galaxy:ransomware="Locky"' ],
+                'jaff':     [ 'ecsirt:malicious-code="ransomware"', 'misp-galaxy:ransomware="Jaff"' ],
                 'dridex':   [ 'misp-galaxy:tool="dridex"' ],
-                'netwire':  [ 'Netwire RAT' ]
+                'netwire':  [ 'Netwire RAT' ],
+                'Pony':     [ 'misp-galaxy:tool="Hancitor"' ],
+                'ursnif':   [ 'misp-galaxy:tool="Snifula"' ],
+                'NanoCore': [ 'misp-galaxy:tool="NanoCoreRAT"' ],
+                'trickbot': [ 'misp-galaxy:tool="Trick Bot"' ]
               }
+
 # Tags to be set depending on the presence of other tags
 dependingtags = { 'tlp:white': [ 'circl:osint-feed' ]
                 }
 
 # Known identifiers for forwarded messages 
-forward_identifiers = { b'-------- Forwarded Message --------', b'Begin forwarded message:' }
+forward_identifiers = { '-------- Forwarded Message --------', 'Begin forwarded message:' }
 
 # Tags to add when hashes are found (e.g. to do automatic expansion)
 hash_only_tags = { 'TODO:VT-ENRICHMENT' }
