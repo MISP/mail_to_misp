@@ -138,3 +138,10 @@ Obviously, you would like to filter mails based on subject or from address and p
 ### Thunderbird
 
 - https://github.com/rommelfs/filterscript (modified fork from https://github.com/adamnew123456/filterscript)
+
+## License
+
+This software is licensed under [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html)
+
+* Copyright (C) 2017 Sascha Rommelfangen
+* Copyright (C) 2017 CIRCL - Computer Incident Response Center Luxembourg
