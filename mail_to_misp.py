@@ -13,7 +13,7 @@ try:
     import hashmarker
     import re
     from pyfaup.faup import Faup
-    from pymisp import PyMISP
+    from pymisp import PyMISP, MISPEvent
     from defang import refang
     import dns.resolver
     import email
@@ -150,9 +150,15 @@ for ignoreline in ignorelist:
 # Remove words from subject
 for removeword in removelist:
     email_subject = re.sub(removeword, "", email_subject)
+    
+if debug:
+    import logging
+    logger = logging.getLogger('pymisp')
+    logging.basicConfig(level=logging.DEBUG, filename="/tmp/mail_to_misp_debug.log", filemode='w')
 
 def init(url, key):
-    return PyMISP(url, key, misp_verifycert, 'json')
+    return PyMISP(url, key, misp_verifycert, 'json', debug=debug)
+
 
 # Evaluate classification
 tlp_tag = tlptag_default
@@ -165,7 +171,10 @@ for tag in tlptags:
 # Create the MISP event
 misp = init(misp_url, misp_key)
 new_event = misp.new_event(info=email_subject, distribution=0, threat_level_id=3, analysis=1)
-misp.add_tag(new_event, tlp_tag)
+misp_event = MISPEvent()
+misp_event.load(new_event)
+
+misp.tag(misp_event.uuid, tlp_tag)
 
 if attach_original_mail and original_email_data:
     misp.add_named_attribute(new_event, 'email-body', original_email_data, category='Payload delivery', to_ids=False)
@@ -173,7 +182,7 @@ if attach_original_mail and original_email_data:
 for tag in dependingtags:
     if tag in tlp_tag:
         for dependingtag in dependingtags[tag]:
-            misp.add_tag(new_event, dependingtag)
+            misp.tag(misp_event.uuid, dependingtag)
 
 ## Prepare extraction of IOCs
 
@@ -211,7 +220,7 @@ f = Faup()
 for malware in malwaretags:
     if malware in email_subject.lower():
         for tag in malwaretags[malware]:
-            misp.add_tag(new_event, tag)
+            misp.tag(misp_event, tag)
 
 # Extract and add hashes
 hashlist_md5 = re.findall(hashmarker.MD5_REGEX, email_data)
@@ -227,7 +236,7 @@ for h in hashlist_sha256:
 
 if (len(hashlist_md5) > 0) or (len(hashlist_sha1) > 0) or (len(hashlist_sha256) > 0):
     for tag in hash_only_tags:
-        misp.add_tag(new_event, tag)
+        misp.tag(misp_event, tag)
 
 # Add IOCs and expanded information to MISP
 for entry in urllist:
@@ -247,8 +256,10 @@ for entry in urllist:
         elif domainname in externallist:
             misp.add_named_attribute(new_event, 'link', entry, category='External analysis', to_ids=False)
         else:
+            comment = ""
             if (domainname in noidsflaglist) or (hostname in noidsflaglist):
                 ids_flag = False
+                comment = "Known host (mostly for connectivity test or IP lookup)"
             if debug:
                 syslog.syslog(str(entry))
             if hostname:
@@ -256,13 +267,16 @@ for entry in urllist:
                     if is_valid_ipv4_address(hostname):
                         misp.add_url(new_event, entry, category='Network activity', to_ids=False)
                     else:
-                        misp.add_url(new_event, entry, category='Network activity', to_ids=ids_flag)
+                        misp.add_url(new_event, entry, comment=comment, category='Network activity', to_ids=ids_flag)
                 if debug:
                     syslog.syslog(hostname)
-                port = f.get_port()
+                try:
+                    port = f.get_port().decode('utf-8', 'ignore')
+                except:
+                    port = None 
                 comment = ""
                 if port:
-                    comment = "on port: " + str(port)
+                    comment = "on port: " + port
                 if is_valid_ipv4_address(hostname):
                     misp.add_ipdst(new_event, hostname, comment=comment, category='Network activity', to_ids=False)
                 else:
@@ -286,8 +300,11 @@ if stdin_used:
             _, output_path = tempfile.mkstemp()
             output = open(output_path, 'wb')
             output.write(part.get_payload(decode=True))
-            event_id = new_event['Event']['id']
-            misp.upload_sample(filename, output_path, event_id, distribution=None, to_ids=True, category=None, comment=None, info='My Info', analysis=None, threat_level_id=None) 
+            attachment = part.get_payload(decode=True)
+            event_id = misp_event.id
+            #misp.add_attachment(new_event, output_path, distribution=None, to_ids=True, category='Payload delivery', comment=None, info='My Info', analysis=None, threat_level_id=None) 
+            misp.upload_sample(filename, output_path, event_id, distribution=None, to_ids=True)
             output.close()
 
-syslog.syslog("Job finished.")
+if debug:
+    syslog.syslog("Job finished.")
