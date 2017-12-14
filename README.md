@@ -31,19 +31,46 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 
 For the moment, the implemented workflow is:
 
-1. Apple Mail
-
-`Email -> Apple Mail -> Mail rule -> AppleScript -> mail_to_misp -> PyMISP -> MISP`
-
-2. Mozilla Thunderbird
-
-`Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> mail_to_misp -> PyMISP -> MISP`
-
-3. Postfix and others
+1. Postfix and others
 
 `Email -> mail_to_misp`
 
+2. Apple Mail
+
+`Email -> Apple Mail -> Mail rule -> AppleScript -> mail_to_misp -> PyMISP -> MISP`
+
+3. Mozilla Thunderbird
+
+`Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> mail_to_misp -> PyMISP -> MISP`
+ 
+
 ## Installation
+
+### Postfix (or other MTA) - preferred method
+
+1. Setup a new email address in the aliases file (e.g. /etc/aliases) and configure the correct path:
+
+`misp_handler: "|/path/to/mail_to_misp.py"`
+
+2. Rebuild the DB:
+
+`$ sudo newaliases`
+
+3. Configure mail_to_misp_config.py
+
+You should now be able to send your IoC-containing mails to misp_handler@YOURDOMAIN.
+
+#### Bonus: Fake-SMTPD spamtrap
+
+If you want to process all incoming junk mails automatically and collect the contained information in a (separate?) MISP instance, you could use the fake_smtp.py script. It listens on port 25, accepts all mails and pushes them through mail_to_misp to a MISP instance.
+
+1. Configure mail_to_misp_config.py
+
+2. ln -s  mail_to_misp_config.py fake_smtp_config.py
+
+3. Run fake_smtp.py (as root)
+
+`$ sudo python3 fake_smtp.py`
 
 ### Apple Mail
 
@@ -92,29 +119,6 @@ pythoncom.PumpMessages()
 
 Obviously, you would like to filter mails based on subject or from address and pass subject and body to mail_to_misp.py in order to do something useful. Pull-requests welcome for actual implementations :) 
 
-### Postfix (or other MTA)
-
-1. Setup a new email address in the aliases file (e.g. /etc/aliases) and configure the correct path:
-
-`misp_handler: "|/path/to/mail_to_misp.py"`
-
-2. Rebuild the DB:
-
-`$ sudo newaliases`
-
-3. Configure mail_to_misp_config.py
-
-You should now be able to send your IoC-containing mails to misp_handler@YOURDOMAIN.
-
-### Fake-SMTPD spamtrap
-
-If you want to process all incoming junk mails automatically and collect the contained information in a (separate?) MISP instance, you could use the fake_smtp.py script. It listens on port 25, accepts all mails and pushes them through mail_to_misp to a MISP instance.
-
-1. Configure mail_to_misp_config.py
-
-2. Run fake_smtp.py (as root)
-
-`$ sudo python3 fake_smtp.py`
 
 ## Requirements
 
@@ -134,3 +138,10 @@ If you want to process all incoming junk mails automatically and collect the con
 ### Thunderbird
 
 - https://github.com/rommelfs/filterscript (modified fork from https://github.com/adamnew123456/filterscript)
+
+## License
+
+This software is licensed under [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html)
+
+* Copyright (C) 2017 Sascha Rommelfangen
+* Copyright (C) 2017 CIRCL - Computer Incident Response Center Luxembourg
