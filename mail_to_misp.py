@@ -96,12 +96,6 @@ try:
 except Exception as e:
     syslog.syslog(str(e))
 stdin_used = True
-#except Exception as e:
-#    if debug:
-#        syslog.syslog("FATAL ERROR: Not all required input received")
-#        print(str(e))
-#        syslog.syslog(str(e))
-#    sys.exit(1)
 
 #if debug:
 #    syslog.syslog("Encoding of subject: {0}".format(ftfy.guess_bytes(email_subject)[1]))
@@ -153,11 +147,11 @@ for removeword in removelist:
     
 if debug:
     import logging
-    logger = logging.getLogger('pymisp')
+    logger = logging.getLogger('pymisp').setLevel(logging.DEBUG)
     logging.basicConfig(level=logging.DEBUG, filename="/tmp/mail_to_misp_debug.log", filemode='w')
 
 def init(url, key):
-    return PyMISP(url, key, misp_verifycert, 'json', debug=debug)
+    return PyMISP(url, key, misp_verifycert, 'json', debug=None)
 
 
 # Evaluate classification
@@ -220,7 +214,7 @@ f = Faup()
 for malware in malwaretags:
     if malware in email_subject.lower():
         for tag in malwaretags[malware]:
-            misp.tag(misp_event, tag)
+            misp.tag(misp_event.uuid, tag)
 
 # Extract and add hashes
 hashlist_md5 = re.findall(hashmarker.MD5_REGEX, email_data)
@@ -228,15 +222,15 @@ hashlist_sha1 = re.findall(hashmarker.SHA1_REGEX, email_data)
 hashlist_sha256 = re.findall(hashmarker.SHA256_REGEX, email_data)
 
 for h in hashlist_md5:
-    misp.add_hashes(new_event, md5=h)
+    misp.add_named_attribute(new_event, 'md5', h, to_ids=True)
 for h in hashlist_sha1:
-    misp.add_hashes(new_event, sha1=h)
+    misp.add_named_attribute(new_event, 'sha1', h, to_ids=True)
 for h in hashlist_sha256:
-    misp.add_hashes(new_event, sha256=h)
+    misp.add_named_attribute(new_event, 'sha256', h, to_ids=True)
 
 if (len(hashlist_md5) > 0) or (len(hashlist_sha1) > 0) or (len(hashlist_sha256) > 0):
     for tag in hash_only_tags:
-        misp.tag(misp_event, tag)
+        misp.tag(misp_event.uuid, tag)
 
 # Add IOCs and expanded information to MISP
 for entry in urllist:
@@ -265,9 +259,9 @@ for entry in urllist:
             if hostname:
                 if schema:
                     if is_valid_ipv4_address(hostname):
-                        misp.add_url(new_event, entry, category='Network activity', to_ids=False)
+                        misp.add_named_attribute(new_event, 'url', entry, category='Network activity', to_ids=False)
                     else:
-                        misp.add_url(new_event, entry, comment=comment, category='Network activity', to_ids=ids_flag)
+                        misp.add_named_attribute(new_event, 'url', entry, category='Network activity', to_ids=ids_flag)
                 if debug:
                     syslog.syslog(hostname)
                 try:
@@ -278,14 +272,14 @@ for entry in urllist:
                 if port:
                     comment = "on port: " + port
                 if is_valid_ipv4_address(hostname):
-                    misp.add_ipdst(new_event, hostname, comment=comment, category='Network activity', to_ids=False)
+                    misp.add_named_attribute(new_event, 'ip-dst', hostname, comment=comment, category='Network activity', to_ids=False)
                 else:
-                    misp.add_hostname(new_event, hostname, comment=comment, category='Network activity', to_ids=ids_flag)
+                    misp.add_named_attribute(new_event, 'hostname', hostname, comment=comment, category='Network activity', to_ids=ids_flag)
                 try:
                     for rdata in dns.resolver.query(hostname, 'A'):
                         if debug:
                             syslog.syslog(str(rdata))
-                        misp.add_ipdst(new_event, rdata.to_text(), category='Network activity', to_ids=False, comment=hostname)
+                        misp.add_named_attribute(new_event, 'ip-dst', rdata.to_text(), comment=hostname, category='Network activity', to_ids=False)
                 except Exception as e:
                     if debug:
                         syslog.syslog(str(e))
@@ -302,7 +296,6 @@ if stdin_used:
             output.write(part.get_payload(decode=True))
             attachment = part.get_payload(decode=True)
             event_id = misp_event.id
-            #misp.add_attachment(new_event, output_path, distribution=None, to_ids=True, category='Payload delivery', comment=None, info='My Info', analysis=None, threat_level_id=None) 
             misp.upload_sample(filename, output_path, event_id, distribution=None, to_ids=True)
             output.close()
 
