@@ -134,6 +134,7 @@ stopword = config.stopword
 hash_only_tags = config.hash_only_tags
 forward_identifiers = config.forward_identifiers
 attach_original_mail = config.attach_original_mail
+skip_wl = config.skip_item_on_warninglist
 
 original_email_data = email_data
 
@@ -289,7 +290,7 @@ if stdin_used:
     for part in msg.walk():
         if part.get_content_maintype() == 'multipart':
             continue
-        if part.get_content_maintype() != 'text':
+        if part.get_content_maintype() != 'text' and part.get_payload(decode=True) is not None:
             filename = part.get_filename()
             _, output_path = tempfile.mkstemp()
             output = open(output_path, 'wb')
