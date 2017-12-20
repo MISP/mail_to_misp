@@ -172,7 +172,8 @@ misp_event.load(new_event)
 misp.tag(misp_event.uuid, tlp_tag)
 
 if attach_original_mail and original_email_data:
-    misp.add_named_attribute(new_event, 'email-body', original_email_data, category='Payload delivery', to_ids=False, enforceWarninglist=enforcewarninglist)
+    misp.add_named_attribute(new_event, 'email-body', original_email_data, category='Payload delivery', 
+                                to_ids=False, enforceWarninglist=enforcewarninglist)
 # Add additional tags depending on others
 for tag in dependingtags:
     if tag in tlp_tag:
