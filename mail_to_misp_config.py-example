@@ -39,6 +39,9 @@ ignorelist = (".*From: .*\n?", ".*Sender: .*\n?", ".*Received: .*\n?", ".*Sender
                     ".*Domain Status: .*\n?", ".*Registrant Email: .*\n?", ".*IP Location: .*\n?",
                     ".*X-Get-Message-Sender-Via: .*\n?", ".*X-Authenticated-Sender: .*\n")
 
+# Ignore (don't add) attributes that are on server side warning list
+enforcewarninglist=True
+
 # Remove "[tags]", "Re: ", "Fwd: " from subject
 removelist = ("[\(\[].*?[\)\]]", "Re: ", "Fwd: ")
 
@@ -70,3 +73,5 @@ forward_identifiers = { '-------- Forwarded Message --------', 'Begin forwarded 
 # Tags to add when hashes are found (e.g. to do automatic expansion)
 hash_only_tags = { 'TODO:VT-ENRICHMENT' }
 
+# If an attribute is on any MISP server side `warning list`, skip the creation of the attribute
+skip_item_on_warninglist = True

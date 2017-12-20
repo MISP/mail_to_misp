@@ -126,6 +126,7 @@ externallist = config.externallist
 internallist = config.internallist
 noidsflaglist = config.noidsflaglist
 ignorelist = config.ignorelist
+enforcewarninglist = config.enforcewarninglist
 removelist = config.removelist
 malwaretags = config.malwaretags
 dependingtags = config.dependingtags
@@ -134,7 +135,6 @@ stopword = config.stopword
 hash_only_tags = config.hash_only_tags
 forward_identifiers = config.forward_identifiers
 attach_original_mail = config.attach_original_mail
-skip_wl = config.skip_item_on_warninglist
 
 original_email_data = email_data
 
@@ -172,7 +172,7 @@ misp_event.load(new_event)
 misp.tag(misp_event.uuid, tlp_tag)
 
 if attach_original_mail and original_email_data:
-    misp.add_named_attribute(new_event, 'email-body', original_email_data, category='Payload delivery', to_ids=False)
+    misp.add_named_attribute(new_event, 'email-body', original_email_data, category='Payload delivery', to_ids=False, enforceWarninglist=enforcewarninglist)
 # Add additional tags depending on others
 for tag in dependingtags:
     if tag in tlp_tag:
@@ -223,11 +223,11 @@ hashlist_sha1 = re.findall(hashmarker.SHA1_REGEX, email_data)
 hashlist_sha256 = re.findall(hashmarker.SHA256_REGEX, email_data)
 
 for h in hashlist_md5:
-    misp.add_named_attribute(new_event, 'md5', h, to_ids=True)
+    misp.add_named_attribute(new_event, 'md5', h, to_ids=True, enforceWarninglist=enforcewarninglist)
 for h in hashlist_sha1:
-    misp.add_named_attribute(new_event, 'sha1', h, to_ids=True)
+    misp.add_named_attribute(new_event, 'sha1', h, to_ids=True, enforceWarninglist=enforcewarninglist)
 for h in hashlist_sha256:
-    misp.add_named_attribute(new_event, 'sha256', h, to_ids=True)
+    misp.add_named_attribute(new_event, 'sha256', h, to_ids=True, enforceWarninglist=enforcewarninglist)
 
 if (len(hashlist_md5) > 0) or (len(hashlist_sha1) > 0) or (len(hashlist_sha256) > 0):
     for tag in hash_only_tags:
@@ -247,9 +247,11 @@ for entry in urllist:
         syslog.syslog(domainname)
     if domainname not in excludelist:
         if domainname in internallist:
-            misp.add_named_attribute(new_event, 'link', entry, category='Internal reference', to_ids=False, distribution=0)
+            misp.add_named_attribute(new_event, 'link', entry, category='Internal reference', 
+                                        to_ids=False, distribution=0, enforceWarninglist=enforcewarninglist)
         elif domainname in externallist:
-            misp.add_named_attribute(new_event, 'link', entry, category='External analysis', to_ids=False)
+            misp.add_named_attribute(new_event, 'link', entry, category='External analysis', 
+                                        to_ids=False, enforceWarninglist=enforcewarninglist)
         else:
             comment = ""
             if (domainname in noidsflaglist) or (hostname in noidsflaglist):
@@ -260,9 +262,11 @@ for entry in urllist:
             if hostname:
                 if schema:
                     if is_valid_ipv4_address(hostname):
-                        misp.add_named_attribute(new_event, 'url', entry, category='Network activity', to_ids=False)
+                        misp.add_named_attribute(new_event, 'url', entry, category='Network activity', 
+                                                    to_ids=False, enforceWarninglist=enforcewarninglist)
                     else:
-                        misp.add_named_attribute(new_event, 'url', entry, category='Network activity', to_ids=ids_flag)
+                        misp.add_named_attribute(new_event, 'url', entry, category='Network activity', 
+                                                    to_ids=ids_flag, enforceWarninglist=enforcewarninglist)
                 if debug:
                     syslog.syslog(hostname)
                 try:
@@ -273,14 +277,18 @@ for entry in urllist:
                 if port:
                     comment = "on port: " + port
                 if is_valid_ipv4_address(hostname):
-                    misp.add_named_attribute(new_event, 'ip-dst', hostname, comment=comment, category='Network activity', to_ids=False)
+                    misp.add_named_attribute(new_event, 'ip-dst', hostname, comment=comment, category='Network activity', 
+                                                to_ids=False, enforceWarninglist=enforcewarninglist)
                 else:
-                    misp.add_named_attribute(new_event, 'hostname', hostname, comment=comment, category='Network activity', to_ids=ids_flag)
+                    misp.add_named_attribute(new_event, 'hostname', hostname, comment=comment, category='Network activity', 
+                                                to_ids=ids_flag, enforceWarninglist=enforcewarninglist)
                 try:
                     for rdata in dns.resolver.query(hostname, 'A'):
                         if debug:
                             syslog.syslog(str(rdata))
-                        misp.add_named_attribute(new_event, 'ip-dst', rdata.to_text(), comment=hostname, category='Network activity', to_ids=False)
+                        misp.add_named_attribute(new_event, 'ip-dst', rdata.to_text(), comment=hostname, 
+                                                    category='Network activity', to_ids=False, 
+                                                    enforceWarninglist=enforcewarninglist)
                 except Exception as e:
                     if debug:
                         syslog.syslog(str(e))
