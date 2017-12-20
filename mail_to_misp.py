@@ -22,6 +22,7 @@ try:
     import socket
     import syslog
     import ftfy
+    import hashlib
     config = __import__(configfile)
 except ImportError as e:
     print("(!) Problem loading module:")
@@ -127,6 +128,7 @@ internallist = config.internallist
 noidsflaglist = config.noidsflaglist
 ignorelist = config.ignorelist
 enforcewarninglist = config.enforcewarninglist
+sighting = config.sighting
 removelist = config.removelist
 malwaretags = config.malwaretags
 dependingtags = config.dependingtags
@@ -154,6 +156,10 @@ if debug:
 def init(url, key):
     return PyMISP(url, key, misp_verifycert, 'json', debug=None)
 
+def sight(sighting, value):
+    if sighting:
+        d = {'value': value}
+        misp.set_sightings(d)
 
 # Evaluate classification
 tlp_tag = tlptag_default
@@ -225,10 +231,13 @@ hashlist_sha256 = re.findall(hashmarker.SHA256_REGEX, email_data)
 
 for h in hashlist_md5:
     misp.add_named_attribute(new_event, 'md5', h, to_ids=True, enforceWarninglist=enforcewarninglist)
+    sight(sighting, h)
 for h in hashlist_sha1:
     misp.add_named_attribute(new_event, 'sha1', h, to_ids=True, enforceWarninglist=enforcewarninglist)
+    sight(sighting, h)
 for h in hashlist_sha256:
     misp.add_named_attribute(new_event, 'sha256', h, to_ids=True, enforceWarninglist=enforcewarninglist)
+    sight(sighting, h)
 
 if (len(hashlist_md5) > 0) or (len(hashlist_sha1) > 0) or (len(hashlist_sha256) > 0):
     for tag in hash_only_tags:
@@ -250,9 +259,11 @@ for entry in urllist:
         if domainname in internallist:
             misp.add_named_attribute(new_event, 'link', entry, category='Internal reference', 
                                         to_ids=False, distribution=0, enforceWarninglist=enforcewarninglist)
+            sight(sighting, entry)
         elif domainname in externallist:
             misp.add_named_attribute(new_event, 'link', entry, category='External analysis', 
                                         to_ids=False, enforceWarninglist=enforcewarninglist)
+            sight(sighting, entry)
         else:
             comment = ""
             if (domainname in noidsflaglist) or (hostname in noidsflaglist):
@@ -268,6 +279,7 @@ for entry in urllist:
                     else:
                         misp.add_named_attribute(new_event, 'url', entry, category='Network activity', 
                                                     to_ids=ids_flag, enforceWarninglist=enforcewarninglist)
+                    sight(sighting, entry)
                 if debug:
                     syslog.syslog(hostname)
                 try:
@@ -280,9 +292,11 @@ for entry in urllist:
                 if is_valid_ipv4_address(hostname):
                     misp.add_named_attribute(new_event, 'ip-dst', hostname, comment=comment, category='Network activity', 
                                                 to_ids=False, enforceWarninglist=enforcewarninglist)
+                    sight(sighting, hostname)
                 else:
                     misp.add_named_attribute(new_event, 'hostname', hostname, comment=comment, category='Network activity', 
                                                 to_ids=ids_flag, enforceWarninglist=enforcewarninglist)
+                    sight(sighting, hostname)
                 try:
                     for rdata in dns.resolver.query(hostname, 'A'):
                         if debug:
@@ -290,6 +304,7 @@ for entry in urllist:
                         misp.add_named_attribute(new_event, 'ip-dst', rdata.to_text(), comment=hostname, 
                                                     category='Network activity', to_ids=False, 
                                                     enforceWarninglist=enforcewarninglist)
+                        sight(sighting, rdata.to_text())
                 except Exception as e:
                     if debug:
                         syslog.syslog(str(e))
@@ -307,6 +322,8 @@ if stdin_used:
             attachment = part.get_payload(decode=True)
             event_id = misp_event.id
             misp.upload_sample(filename, output_path, event_id, distribution=None, to_ids=True)
+            file_hash = hashlib.sha256(open(output_path, 'rb').read()).hexdigest()
+            sight(sighting, file_hash)
             output.close()
 
 if debug:

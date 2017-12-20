@@ -42,6 +42,9 @@ ignorelist = (".*From: .*\n?", ".*Sender: .*\n?", ".*Received: .*\n?", ".*Sender
 # Ignore (don't add) attributes that are on server side warning list
 enforcewarninglist=True
 
+# Add a sighting for each value
+sighting=True
+
 # Remove "[tags]", "Re: ", "Fwd: " from subject
 removelist = ("[\(\[].*?[\)\]]", "Re: ", "Fwd: ")
 
