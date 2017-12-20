@@ -129,6 +129,7 @@ Obviously, you would like to filter mails based on subject or from address and p
 - mail_to_misp requires access to a MISP instance (via API).
 - Python 3
 - dnspython
+- hashlib
 - faup from https://github.com/stricaud/faup
 - urlmarker from https://github.com/rcompton/ryancompton.net/blob/master/assets/praw_drugs/urlmarker.py (contained in this project)
 - ftfy from https://github.com/LuminosoInsight/python-ftfy (to fix unicode text)
