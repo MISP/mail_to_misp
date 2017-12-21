@@ -44,6 +44,7 @@ enforcewarninglist=True
 
 # Add a sighting for each value
 sighting=True
+sighting_source="YOUR_MAIL_TO_MISP_IDENTIFIER"
 
 # Remove "[tags]", "Re: ", "Fwd: " from subject
 removelist = ("[\(\[].*?[\)\]]", "Re: ", "Fwd: ")

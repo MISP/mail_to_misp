@@ -54,13 +54,14 @@ def is_valid_ipv6_address(address):
 # Add a sighting
 def sight(sighting, value):
     if sighting:
-        d = {'value': value}
+        d = {'value': value, 'source': sighting_source}
         misp.set_sightings(d)
 
 # Add named attribute and sight if configured
 def add_attribute(event, attribute_type, value, category, ids_flag, warninglist, sighting, comment=None):
     syslog.syslog("Event " + event['Event']['id'] + ": Adding attribute (" + attribute_type + ") " + value)
-    misp.add_named_attribute(event, attribute_type, value, category, comment=comment, to_ids=ids_flag, distribution=0, enforceWarninglist=warninglist)
+    misp.add_named_attribute(event, attribute_type, value, category, distribution=5, 
+                                comment=comment, to_ids=ids_flag, enforceWarninglist=warninglist)
     sight(sighting, value)
 
 syslog.syslog("Job started.")
@@ -144,6 +145,7 @@ noidsflaglist = config.noidsflaglist
 ignorelist = config.ignorelist
 enforcewarninglist = config.enforcewarninglist
 sighting = config.sighting
+sighting_source = config.sighting_source
 removelist = config.removelist
 malwaretags = config.malwaretags
 dependingtags = config.dependingtags
@@ -318,7 +320,7 @@ if stdin_used:
             if debug:
                 syslog.syslog(str(attachment)[:200])
             event_id = misp_event.id
-            misp.upload_sample(filename, output_path, event_id, distribution=None, to_ids=True)
+            misp.upload_sample(filename, output_path, event_id, distribution=5, to_ids=True)
             file_hash = hashlib.sha256(open(output_path, 'rb').read()).hexdigest()
             sight(sighting, file_hash)
 
