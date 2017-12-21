@@ -164,7 +164,7 @@ for removeword in removelist:
     email_subject = re.sub(removeword, "", email_subject)
     
 def init(url, key):
-    return PyMISP(url, key, misp_verifycert, 'json')
+    return PyMISP(url, key, misp_verifycert, 'json', debug=True)
 
 
 # Evaluate classification
@@ -313,11 +313,13 @@ if stdin_used:
             _, output_path = tempfile.mkstemp()
             output = open(output_path, 'wb')
             output.write(part.get_payload(decode=True))
+            output.close()
             attachment = part.get_payload(decode=True)
+            if debug:
+                syslog.syslog(str(attachment)[:200])
             event_id = misp_event.id
             misp.upload_sample(filename, output_path, event_id, distribution=None, to_ids=True)
             file_hash = hashlib.sha256(open(output_path, 'rb').read()).hexdigest()
             sight(sighting, file_hash)
-            output.close()
 
 syslog.syslog("Job finished.")
