@@ -51,6 +51,19 @@ def is_valid_ipv6_address(address):
         return False
     return True
 
+# Add a sighting
+def sight(sighting, value):
+    if sighting:
+        d = {'value': value}
+        misp.set_sightings(d)
+
+# Add named attribute and sight if configured
+def add_attribute(event, attribute_type, value, category, ids_flag, warninglist, sighting, comment=None):
+    syslog.syslog("Event " + event['Event']['id'] + ": Adding attribute (" + attribute_type + ") " + value)
+    misp.add_named_attribute(event, attribute_type, value, category, comment=comment, to_ids=ids_flag, distribution=0, enforceWarninglist=warninglist)
+    sight(sighting, value)
+
+syslog.syslog("Job started.")
 debug = config.debug
 stdin_used = False
 
@@ -70,7 +83,8 @@ else:
     # receive data and subject through arguments
     else:
         mailcontent = sys.argv[1]
-        syslog.syslog(mailcontent)
+        if debug:
+            syslog.syslog(mailcontent)
         if len(sys.argv) >= 3:
             mail_subject = sys.argv[2].encode("utf-8", "ignore")
 email_data = b''
@@ -90,7 +104,8 @@ for part in msg.walk():
         continue
     if part.get_content_maintype() == 'text':
         part.set_charset(charset)
-        syslog.syslog(str(part.get_payload(decode=True)))
+        if debug:
+            syslog.syslog(str(part.get_payload(decode=True)))
         email_data += part.get_payload(decode=True)        
 try:
     email_subject += mail_subject
@@ -148,18 +163,9 @@ for ignoreline in ignorelist:
 for removeword in removelist:
     email_subject = re.sub(removeword, "", email_subject)
     
-if debug:
-    import logging
-    logger = logging.getLogger('pymisp').setLevel(logging.DEBUG)
-    logging.basicConfig(level=logging.DEBUG, filename="/tmp/mail_to_misp_debug.log", filemode='w')
-
 def init(url, key):
-    return PyMISP(url, key, misp_verifycert, 'json', debug=None)
+    return PyMISP(url, key, misp_verifycert, 'json')
 
-def sight(sighting, value):
-    if sighting:
-        d = {'value': value}
-        misp.set_sightings(d)
 
 # Evaluate classification
 tlp_tag = tlptag_default
@@ -178,8 +184,10 @@ misp_event.load(new_event)
 misp.tag(misp_event.uuid, tlp_tag)
 
 if attach_original_mail and original_email_data:
-    misp.add_named_attribute(new_event, 'email-body', original_email_data, category='Payload delivery', 
-                                to_ids=False, enforceWarninglist=enforcewarninglist)
+#    misp.add_named_attribute(new_event, 'email-body', original_email_data, category='Payload delivery', 
+#                                to_ids=False, enforceWarninglist=enforcewarninglist)
+    add_attribute(new_event, 'email-body', original_email_data, 'Payload delivery', False, enforcewarninglist)
+
 # Add additional tags depending on others
 for tag in dependingtags:
     if tag in tlp_tag:
@@ -230,14 +238,11 @@ hashlist_sha1 = re.findall(hashmarker.SHA1_REGEX, email_data)
 hashlist_sha256 = re.findall(hashmarker.SHA256_REGEX, email_data)
 
 for h in hashlist_md5:
-    misp.add_named_attribute(new_event, 'md5', h, to_ids=True, enforceWarninglist=enforcewarninglist)
-    sight(sighting, h)
+    add_attribute(new_event, 'md5', h, 'Payload delivery', True, enforcewarninglist, sighting)
 for h in hashlist_sha1:
-    misp.add_named_attribute(new_event, 'sha1', h, to_ids=True, enforceWarninglist=enforcewarninglist)
-    sight(sighting, h)
+    add_attribute(new_event, 'sha1', h, 'Payload delivery', True, enforcewarninglist, sighting)
 for h in hashlist_sha256:
-    misp.add_named_attribute(new_event, 'sha256', h, to_ids=True, enforceWarninglist=enforcewarninglist)
-    sight(sighting, h)
+    add_attribute(new_event, 'sha256', h, 'Payload delivery', True, enforcewarninglist, sighting)
 
 if (len(hashlist_md5) > 0) or (len(hashlist_sha1) > 0) or (len(hashlist_sha256) > 0):
     for tag in hash_only_tags:
@@ -257,13 +262,9 @@ for entry in urllist:
         syslog.syslog(domainname)
     if domainname not in excludelist:
         if domainname in internallist:
-            misp.add_named_attribute(new_event, 'link', entry, category='Internal reference', 
-                                        to_ids=False, distribution=0, enforceWarninglist=enforcewarninglist)
-            sight(sighting, entry)
+            add_attribute(new_event, 'link', entry, 'Internal reference', False, enforcewarninglist, sighting)
         elif domainname in externallist:
-            misp.add_named_attribute(new_event, 'link', entry, category='External analysis', 
-                                        to_ids=False, enforceWarninglist=enforcewarninglist)
-            sight(sighting, entry)
+            add_attribute(new_event, 'link', entry, 'External analysis', False, enforcewarninglist, sighting)
         else:
             comment = ""
             if (domainname in noidsflaglist) or (hostname in noidsflaglist):
@@ -274,37 +275,30 @@ for entry in urllist:
             if hostname:
                 if schema:
                     if is_valid_ipv4_address(hostname):
-                        misp.add_named_attribute(new_event, 'url', entry, category='Network activity', 
-                                                    to_ids=False, enforceWarninglist=enforcewarninglist)
+                        add_attribute(new_event, 'url', entry, 'Network activity', False, enforcewarninglist, sighting)
                     else:
-                        misp.add_named_attribute(new_event, 'url', entry, category='Network activity', 
-                                                    to_ids=ids_flag, enforceWarninglist=enforcewarninglist)
-                    sight(sighting, entry)
+                        add_attribute(new_event, 'url', entry, 'Network activity', ids_flag, enforcewarninglist, 
+                                        sighting, comment=comment)
                 if debug:
                     syslog.syslog(hostname)
                 try:
                     port = f.get_port().decode('utf-8', 'ignore')
                 except:
                     port = None 
-                comment = ""
                 if port:
                     comment = "on port: " + port
                 if is_valid_ipv4_address(hostname):
-                    misp.add_named_attribute(new_event, 'ip-dst', hostname, comment=comment, category='Network activity', 
-                                                to_ids=False, enforceWarninglist=enforcewarninglist)
-                    sight(sighting, hostname)
+                    add_attribute(new_event, 'ip-dst', hostname, 'Network activity', ids_flag, enforcewarninglist, 
+                                    sighting, comment=comment)
                 else:
-                    misp.add_named_attribute(new_event, 'hostname', hostname, comment=comment, category='Network activity', 
-                                                to_ids=ids_flag, enforceWarninglist=enforcewarninglist)
-                    sight(sighting, hostname)
+                    add_attribute(new_event, 'hostname', hostname, 'Network activity', ids_flag, enforcewarninglist, 
+                                    sighting, comment=comment)
                 try:
                     for rdata in dns.resolver.query(hostname, 'A'):
                         if debug:
                             syslog.syslog(str(rdata))
-                        misp.add_named_attribute(new_event, 'ip-dst', rdata.to_text(), comment=hostname, 
-                                                    category='Network activity', to_ids=False, 
-                                                    enforceWarninglist=enforcewarninglist)
-                        sight(sighting, rdata.to_text())
+                        add_attribute(new_event, 'ip-dst', rdata.to_text(), 'Network activity', False, enforcewarninglist, 
+                                        sighting, comment=hostname)
                 except Exception as e:
                     if debug:
                         syslog.syslog(str(e))
@@ -326,5 +320,4 @@ if stdin_used:
             sight(sighting, file_hash)
             output.close()
 
-if debug:
-    syslog.syslog("Job finished.")
+syslog.syslog("Job finished.")
