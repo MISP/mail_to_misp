@@ -136,7 +136,12 @@ Obviously, you would like to filter mails based on subject or from address and p
 - defang from https://bitbucket.org/johannestaas/defang
 - Patch defang/defang/__init__.py by commenting out the following line (not used && not compatible with Python 3):
 `from urllib2 import urlparse`
-- Optionally patch defang/defang/__init__.py and add dirty_line = dirty_line.replace('hxxp', 'http') at line 47
+- Optionally patch defang/defang/__init__.py and add at line 47:
+```
+    dirty_line = dirty_line.replace('hxxp', 'http')
+    dirty_line = dirty_line.replace('purr', 'http')
+    dirty_line = dirty_line.replace('meow', 'http')
+```
 
 ### Thunderbird [deprecated]
 
