@@ -260,6 +260,10 @@ for entry in urllist:
         schema = f.get_scheme().decode('utf-8', 'ignore')
     except:
         schema = False
+    try:
+        resource_path = f.get_resource_path().decode('utf-8', 'ignore')
+    except:
+        resource_path = False
     if debug:
         syslog.syslog(domainname)
     if domainname not in excludelist:
@@ -279,8 +283,12 @@ for entry in urllist:
                     if is_valid_ipv4_address(hostname):
                         add_attribute(new_event, 'url', entry, 'Network activity', False, enforcewarninglist, sighting)
                     else:
-                        add_attribute(new_event, 'url', entry, 'Network activity', ids_flag, enforcewarninglist, 
-                                        sighting, comment=comment)
+                        if resource_path:
+                            add_attribute(new_event, 'url', entry, 'Network activity', ids_flag, False,
+                                            sighting, comment=comment)
+                        else:
+                            add_attribute(new_event, 'url', entry, 'Network activity', ids_flag, enforcewarninglist, 
+                                            sighting, comment=comment)
                 if debug:
                     syslog.syslog(hostname)
                 try:
