@@ -61,7 +61,7 @@ def sight(sighting, value):
 def add_attribute(event, attribute_type, value, category, ids_flag, warninglist, sighting, comment=None):
     syslog.syslog("Event " + event['Event']['id'] + ": Adding attribute (" + attribute_type + ") " + value)
     misp.add_named_attribute(event, attribute_type, value, category, distribution=5, 
-                                comment=comment, to_ids=ids_flag, enforceWarninglist=warninglist)
+        comment=comment, to_ids=ids_flag, enforceWarninglist=warninglist)
     sight(sighting, value)
 
 syslog.syslog("Job started.")
@@ -285,10 +285,10 @@ for entry in urllist:
                     else:
                         if resource_path:
                             add_attribute(new_event, 'url', entry, 'Network activity', ids_flag, False,
-                                            sighting, comment=comment)
+                                sighting, comment=comment)
                         else:
                             add_attribute(new_event, 'url', entry, 'Network activity', ids_flag, enforcewarninglist, 
-                                            sighting, comment=comment)
+                                sighting, comment=comment)
                 if debug:
                     syslog.syslog(hostname)
                 try:
@@ -299,16 +299,16 @@ for entry in urllist:
                     comment = "on port: " + port
                 if is_valid_ipv4_address(hostname):
                     add_attribute(new_event, 'ip-dst', hostname, 'Network activity', ids_flag, enforcewarninglist, 
-                                    sighting, comment=comment)
+                        sighting, comment=comment)
                 else:
                     add_attribute(new_event, 'hostname', hostname, 'Network activity', ids_flag, enforcewarninglist, 
-                                    sighting, comment=comment)
+                        sighting, comment=comment)
                 try:
                     for rdata in dns.resolver.query(hostname, 'A'):
                         if debug:
                             syslog.syslog(str(rdata))
                         add_attribute(new_event, 'ip-dst', rdata.to_text(), 'Network activity', False, enforcewarninglist, 
-                                        sighting, comment=hostname)
+                            sighting, comment=hostname)
                 except Exception as e:
                     if debug:
                         syslog.syslog(str(e))
