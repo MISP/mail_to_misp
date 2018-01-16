@@ -169,6 +169,12 @@ def init(url, key):
     return PyMISP(url, key, misp_verifycert, 'json', debug=True)
 
 
+# Create the MISP event
+misp = init(misp_url, misp_key)
+new_event = misp.new_event(info=email_subject, distribution=0, threat_level_id=3, analysis=1)
+misp_event = MISPEvent()
+misp_event.load(new_event)
+
 # Evaluate classification
 tlp_tag = tlptag_default
 tlptags = config.tlptags
@@ -176,13 +182,6 @@ for tag in tlptags:
     for alternativetag in tlptags[tag]:
         if alternativetag in email_data.lower():
             tlp_tag = tag
-
-# Create the MISP event
-misp = init(misp_url, misp_key)
-new_event = misp.new_event(info=email_subject, distribution=0, threat_level_id=3, analysis=1)
-misp_event = MISPEvent()
-misp_event.load(new_event)
-
 misp.tag(misp_event.uuid, tlp_tag)
 
 if attach_original_mail and original_email_data:
