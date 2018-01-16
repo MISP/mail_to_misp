@@ -220,7 +220,7 @@ if debug:
 # Init Faup
 f = Faup()
 
-# Add tags according to configuration
+# Add additional tags according to configuration
 for malware in malwaretags:
     if malware in email_subject.lower():
         for tag in malwaretags[malware]:
