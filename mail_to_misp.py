@@ -180,7 +180,7 @@ for tag in tlptags:
 misp.tag(misp_event.uuid, tlp_tag)
 
 if attach_original_mail and original_email_data:
-    add_attribute(new_event, 'email-body', original_email_data, 'Payload delivery', False, enforcewarninglist)
+    add_attribute(new_event, 'email-body', original_email_data, 'Payload delivery', False, enforcewarninglist, sighting)
 
 # Add additional tags depending on others
 for tag in dependingtags:
