@@ -30,6 +30,7 @@ except ImportError as e:
     sys.exit(-1)
 
 syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
+
 def is_valid_ipv4_address(address):
     try:
         socket.inet_pton(socket.AF_INET, address)
@@ -41,7 +42,6 @@ def is_valid_ipv4_address(address):
         return address.count('.') == 3
     except socket.error:  # not a valid address
         return False
-
     return True
 
 def is_valid_ipv6_address(address):
@@ -50,6 +50,9 @@ def is_valid_ipv6_address(address):
     except socket.error:  # not a valid address
         return False
     return True
+    
+def init(url, key):
+    return PyMISP(url, key, misp_verifycert, 'json', debug=True)
 
 # Add a sighting
 def sight(sighting, value):
@@ -70,8 +73,6 @@ stdin_used = False
 
 email_subject = config.email_subject_prefix
 mail_subject = ""
-#try:
-    #if not sys.stdin.isatty():
 if len(sys.argv) == 1:
     mailcontent = sys.stdin.buffer.read().decode("utf-8", "ignore")
 else:
@@ -113,10 +114,6 @@ try:
 except Exception as e:
     syslog.syslog(str(e))
 stdin_used = True
-
-#if debug:
-#    syslog.syslog("Encoding of subject: {0}".format(ftfy.guess_bytes(email_subject)[1]))
-#    syslog.syslog("Encoding of body: {0}".format(ftfy.guess_bytes(email_data)[1]))
 
 try:
     email_data = ftfy.fix_text(email_data.decode("utf-8", "ignore"))
@@ -164,14 +161,12 @@ for ignoreline in ignorelist:
 # Remove words from subject
 for removeword in removelist:
     email_subject = re.sub(removeword, "", email_subject)
-    
-def init(url, key):
-    return PyMISP(url, key, misp_verifycert, 'json', debug=True)
-
 
 # Create the MISP event
 misp = init(misp_url, misp_key)
 new_event = misp.new_event(info=email_subject, distribution=0, threat_level_id=3, analysis=1)
+
+# Load the MISP event
 misp_event = MISPEvent()
 misp_event.load(new_event)
 
@@ -185,8 +180,6 @@ for tag in tlptags:
 misp.tag(misp_event.uuid, tlp_tag)
 
 if attach_original_mail and original_email_data:
-#    misp.add_named_attribute(new_event, 'email-body', original_email_data, category='Payload delivery', 
-#                                to_ids=False, enforceWarninglist=enforcewarninglist)
     add_attribute(new_event, 'email-body', original_email_data, 'Payload delivery', False, enforcewarninglist)
 
 # Add additional tags depending on others
