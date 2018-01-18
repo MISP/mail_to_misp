@@ -260,9 +260,9 @@ for entry in urllist:
         syslog.syslog(domainname)
     if domainname not in excludelist:
         if domainname in internallist:
-            add_attribute(new_event, 'link', entry, 'Internal reference', False, enforcewarninglist, sighting)
+            add_attribute(new_event, 'link', entry, 'Internal reference', False, False, sighting)
         elif domainname in externallist:
-            add_attribute(new_event, 'link', entry, 'External analysis', False, enforcewarninglist, sighting)
+            add_attribute(new_event, 'link', entry, 'External analysis', False, False, sighting)
         else:
             comment = ""
             if (domainname in noidsflaglist) or (hostname in noidsflaglist):
