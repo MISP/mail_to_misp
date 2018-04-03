@@ -28,6 +28,7 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Contains now a fake-smtpd spamtrap which delivers IoCs/mails to MISP
 - Automatically filter out attributes that are on a server side warning list (enforcewarninglist=True)
 - Support for value sighting (sighting=True, sighting_source="YOUR_MAIL_TO_MISP_IDENTIFIER")
+- Auto-publish when key:yourkey is specified in mail (configurable, m2m_key, m2m_auto_distribution)
 
 ## Implementation
 
