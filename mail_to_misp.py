@@ -133,6 +133,7 @@ misp_key = config.misp_key
 misp_verifycert = config.misp_verifycert
 m2m_key = config.m2m_key
 m2m_auto_distribution = config.m2m_auto_distribution
+m2m_attachment_keyword = config.m2m_attachment_keyword
 
 resolver = dns.resolver.Resolver(configure=False)
 resolver.nameservers = config.nameservers
@@ -332,9 +333,12 @@ if stdin_used:
             if debug:
                 syslog.syslog(str(attachment)[:200])
             event_id = misp_event.id
-            misp.upload_sample(filename, output_path, event_id, distribution=5, to_ids=True)
-            file_hash = hashlib.sha256(open(output_path, 'rb').read()).hexdigest()
-            sight(sighting, file_hash)
+            if m2m_attachment_keyword in email_data:
+                misp.add_attachment(misp_event, output_path, filename=filename, category="External analysis")
+            else:
+                misp.upload_sample(filename, output_path, event_id, distribution=5, to_ids=True)
+                file_hash = hashlib.sha256(open(output_path, 'rb').read()).hexdigest()
+                sight(sighting, file_hash)
 
 if auto_publish:
     misp.publish(misp_event, alert=False)
