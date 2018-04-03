@@ -165,6 +165,7 @@ for removeword in removelist:
     email_subject = re.sub(removeword, "", email_subject)
 
 # Check if autopublish key is present and valid
+auto_publish = False
 autopublish_key = "key:" + m2m_key
 if autopublish_key in email_data:
     auto_publish = True 
