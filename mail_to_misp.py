@@ -131,6 +131,8 @@ if debug:
 misp_url = config.misp_url
 misp_key = config.misp_key
 misp_verifycert = config.misp_verifycert
+m2m_key = config.m2m_key
+m2m_auto_distribution = config.m2m_auto_distribution
 
 resolver = dns.resolver.Resolver(configure=False)
 resolver.nameservers = config.nameservers
@@ -162,9 +164,17 @@ for ignoreline in ignorelist:
 for removeword in removelist:
     email_subject = re.sub(removeword, "", email_subject)
 
+# Check if autopublish key is present and valid
+autopublish_key = "key:" + m2m_key
+if autopublish_key in email_data:
+    auto_publish = True 
+
 # Create the MISP event
 misp = init(misp_url, misp_key)
-new_event = misp.new_event(info=email_subject, distribution=0, threat_level_id=3, analysis=1)
+if auto_publish:
+    new_event = misp.new_event(info=email_subject, distribution=m2m_auto_distribution, threat_level_id=3, analysis=1)
+else:
+    new_event = misp.new_event(info=email_subject, distribution=0, threat_level_id=3, analysis=1)
 
 # Load the MISP event
 misp_event = MISPEvent()
@@ -216,6 +226,7 @@ urllist += re.findall(urlmarker.WEB_URL_REGEX, email_data)
 urllist += re.findall(urlmarker.IP_REGEX, email_data)
 if debug:
     syslog.syslog(str(urllist))
+
 
 # Init Faup
 f = Faup()
@@ -323,5 +334,8 @@ if stdin_used:
             misp.upload_sample(filename, output_path, event_id, distribution=5, to_ids=True)
             file_hash = hashlib.sha256(open(output_path, 'rb').read()).hexdigest()
             sight(sighting, file_hash)
+
+if auto_publish:
+    misp.publish(misp_event, alert=False)
 
 syslog.syslog("Job finished.")

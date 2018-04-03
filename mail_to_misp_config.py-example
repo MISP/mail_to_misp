@@ -6,6 +6,8 @@ import os
 misp_url = 'YOUR_MISP_URL'
 misp_key = 'YOUR_KEY_HERE' # The MISP auth key can be found on the MISP web interface under the automation section
 misp_verifycert = True
+m2m_key = 'YOUSETYOURKEYHERE'
+m2m_auto_distribution = '3' # 3 = All communities
 
 debug = False
 nameservers = ['149.13.33.69']
