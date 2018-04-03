@@ -21,7 +21,7 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Automatically create 'external analysis' links based on filter list (e.g. VirusTotal, malwr.com)
 - Automatically create 'internal reference' links based on filter list
 - Detection of forwarded messages
-- Process attachments as malware samples
+- Process attachments as malware samples or specify that they are processed as benign files (m2m_attachment_keyword)
 - Logging to syslog
 - Remove "[tags]", "Re:" and "Fwd:" from subjects
 - Optionally attach entire mail to event
@@ -29,6 +29,7 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Automatically filter out attributes that are on a server side warning list (enforcewarninglist=True)
 - Support for value sighting (sighting=True, sighting_source="YOUR_MAIL_TO_MISP_IDENTIFIER")
 - Auto-publish when key:yourkey is specified in mail (configurable, m2m_key, m2m_auto_distribution)
+- 
 
 ## Implementation
 
