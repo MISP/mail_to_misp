@@ -22,6 +22,10 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Automatically create 'internal reference' links based on filter list
 - Detection of forwarded messages
 - Process attachments as malware samples or specify that they are processed as benign files (m2m_attachment_keyword)
+```
+You can send mails with attachments to mail_to_misp and tell it, to treat the attachment as a benign document (in contrast to the default behaviour: treating it as a malware sample). You need to set a keyword in the configuration:
+m2m_attachment_keyword = 'attachment:benign'
+```
 - Logging to syslog
 - Remove "[tags]", "Re:" and "Fwd:" from subjects
 - Optionally attach entire mail to event
@@ -29,7 +33,6 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Automatically filter out attributes that are on a server side warning list (enforcewarninglist=True)
 - Support for value sighting (sighting=True, sighting_source="YOUR_MAIL_TO_MISP_IDENTIFIER")
 - Auto-publish when key:yourkey is specified in mail (configurable, m2m_key, m2m_auto_distribution)
-
 ```
 The m2m_key configuration is used to specify a secret only you and your users know. If you know the key, you can send a mail to your mail_to_misp instance, and when this key is present in the body of the message, it will automatically publish the event.
 
@@ -44,6 +47,10 @@ key:ABCDEFGHIJKLMN0PQRSTUVWXYZ
 the event is automatically published.
 
 If you don't want to use this feature, just don't put it in the message body.
+
+The distribution is defined in the configuration as well:
+
+m2m_auto_distribution = '3' # 3 = All communities 
 ```
 
 ## Implementation
