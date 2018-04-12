@@ -29,7 +29,22 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Automatically filter out attributes that are on a server side warning list (enforcewarninglist=True)
 - Support for value sighting (sighting=True, sighting_source="YOUR_MAIL_TO_MISP_IDENTIFIER")
 - Auto-publish when key:yourkey is specified in mail (configurable, m2m_key, m2m_auto_distribution)
-- 
+
+```
+The m2m_key configuration is used to specify a secret only you and your users know. If you know the key, you can send a mail to your mail_to_misp instance, and when this key is present in the body of the message, it will automatically publish the event.
+
+So let's assume your config says:
+
+m2m_key = 'ABCDEFGHIJKLMN0PQRSTUVWXYZ'
+
+If you send a mail to mail_to_misp containing:
+
+key:ABCDEFGHIJKLMN0PQRSTUVWXYZ
+
+the event is automatically published.
+
+If you don't want to use this feature, just don't put it in the message body.
+```
 
 ## Implementation
 
