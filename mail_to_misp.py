@@ -155,9 +155,9 @@ try:
     attach_original_mail = config.attach_original_mail
 except Exception as e:
     syslog.syslog(str(e))
-    print("There is a problem with the configuration. A mandatory configuration variable is not set."
-    print("Did you just update? mail_to_misp might have new configuration variables."
-    print("Please compare with the configuration example.").
+    print("There is a problem with the configuration. A mandatory configuration variable is not set.")
+    print("Did you just update? mail_to_misp might have new configuration variables.")
+    print("Please compare with the configuration example.")
     print("\nTrace:")
     print(e)
     sys.exit(-2)
