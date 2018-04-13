@@ -94,7 +94,13 @@ msg = email.message_from_string(mailcontent)
 if not mail_subject:
     try:
         mail_subject = msg.get('Subject').encode("utf-8", "ignore")
-    except:
+        sub, enc = email.header.decode_header(msg.get('subject'))[0]
+        if enc==None:
+            email_subject = sub
+        else:
+            email_subject = sub.decode(enc)
+    except Exception as e:
+        print(e)
         pass
 for part in msg.walk():
     if part.get_content_charset() is None:
