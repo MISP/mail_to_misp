@@ -128,33 +128,40 @@ if debug:
     syslog.syslog(email_subject)
     syslog.syslog(email_data)
 
-misp_url = config.misp_url
-misp_key = config.misp_key
-misp_verifycert = config.misp_verifycert
-m2m_key = config.m2m_key
-m2m_auto_distribution = config.m2m_auto_distribution
-m2m_attachment_keyword = config.m2m_attachment_keyword
-
-resolver = dns.resolver.Resolver(configure=False)
-resolver.nameservers = config.nameservers
-
-excludelist = config.excludelist
-externallist = config.externallist
-internallist = config.internallist
-noidsflaglist = config.noidsflaglist
-ignorelist = config.ignorelist
-enforcewarninglist = config.enforcewarninglist
-sighting = config.sighting
-sighting_source = config.sighting_source
-removelist = config.removelist
-malwaretags = config.malwaretags
-dependingtags = config.dependingtags
-tlptag_default = config.tlptag_default
-stopword = config.stopword
-hash_only_tags = config.hash_only_tags
-forward_identifiers = config.forward_identifiers
-attach_original_mail = config.attach_original_mail
-
+try:
+    misp_url = config.misp_url
+    misp_key = config.misp_key
+    misp_verifycert = config.misp_verifycert
+    m2m_key = config.m2m_key
+    m2m_auto_distribution = config.m2m_auto_distribution
+    m2m_attachment_keyword = config.m2m_attachment_keyword
+    resolver = dns.resolver.Resolver(configure=False)
+    resolver.nameservers = config.nameservers
+    excludelist = config.excludelist
+    externallist = config.externallist
+    internallist = config.internallist
+    noidsflaglist = config.noidsflaglist
+    ignorelist = config.ignorelist
+    enforcewarninglist = config.enforcewarninglist
+    sighting = config.sighting
+    sighting_source = config.sighting_source
+    removelist = config.removelist
+    malwaretags = config.malwaretags
+    dependingtags = config.dependingtags
+    tlptag_default = config.tlptag_default
+    stopword = config.stopword
+    hash_only_tags = config.hash_only_tags
+    forward_identifiers = config.forward_identifiers
+    attach_original_mail = config.attach_original_mail
+except Exception as e:
+    syslog.syslog(str(e))
+    print("There is a problem with the configuration. A mandatory configuration variable is not set."
+    print("Did you just update? mail_to_misp might have new configuration variables."
+    print("Please compare with the configuration example.").
+    print("\nTrace:")
+    print(e)
+    sys.exit(-2)
+    
 original_email_data = email_data
 
 # Ignore lines in body of message
