@@ -13,11 +13,10 @@ try:
     import hashmarker
     import re
     from pyfaup.faup import Faup
-    from pymisp import PyMISP, MISPEvent
+    from pymisp import PyMISP, MISPEvent, MISPObject
     from defang import refang
     import dns.resolver
     import email
-    from email.generator import Generator
     import tempfile
     import socket
     import syslog
@@ -30,6 +29,7 @@ except ImportError as e:
     sys.exit(-1)
 
 syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
+
 
 def is_valid_ipv4_address(address):
     try:
@@ -44,15 +44,18 @@ def is_valid_ipv4_address(address):
         return False
     return True
 
+
 def is_valid_ipv6_address(address):
     try:
         socket.inet_pton(socket.AF_INET6, address)
     except socket.error:  # not a valid address
         return False
     return True
-    
+
+
 def init(url, key):
-    return PyMISP(url, key, misp_verifycert, 'json', debug=True)
+    return PyMISP(url, key, misp_verifycert, 'json', debug=debug)
+
 
 # Add a sighting
 def sight(sighting, value):
@@ -60,12 +63,14 @@ def sight(sighting, value):
         d = {'value': value, 'source': sighting_source}
         misp.set_sightings(d)
 
+
 # Add named attribute and sight if configured
 def add_attribute(event, attribute_type, value, category, ids_flag, warninglist, sighting, comment=None):
     syslog.syslog("Event " + event['Event']['id'] + ": Adding attribute (" + attribute_type + ") " + value)
-    misp.add_named_attribute(event, attribute_type, value, category, distribution=5, 
-        comment=comment, to_ids=ids_flag, enforceWarninglist=warninglist)
+    misp.add_named_attribute(event, attribute_type, value, category, distribution=5,
+                             comment=comment, to_ids=ids_flag, enforceWarninglist=warninglist)
     sight(sighting, value)
+
 
 syslog.syslog("Job started.")
 debug = config.debug
@@ -95,7 +100,7 @@ if not mail_subject:
     try:
         mail_subject = msg.get('Subject').encode("utf-8", "ignore")
         sub, enc = email.header.decode_header(msg.get('subject'))[0]
-        if enc==None:
+        if enc is None:
             email_subject = sub
         else:
             email_subject = sub.decode(enc)
@@ -105,7 +110,7 @@ if not mail_subject:
 for part in msg.walk():
     if part.get_content_charset() is None:
         # This could probably be detected
-        charset = 'utf-8' 
+        charset = 'utf-8'
     else:
         charset = part.get_content_charset()
     if part.get_content_maintype() == 'multipart':
@@ -114,7 +119,7 @@ for part in msg.walk():
         part.set_charset(charset)
         if debug:
             syslog.syslog(str(part.get_payload(decode=True)))
-        email_data += part.get_payload(decode=True)        
+        email_data += part.get_payload(decode=True)
 try:
     email_subject += mail_subject
 except Exception as e:
@@ -123,14 +128,14 @@ stdin_used = True
 
 try:
     email_data = ftfy.fix_text(email_data.decode("utf-8", "ignore"))
-except:
+except Exception:
     email_data = ftfy.fix_text(email_data)
 try:
     email_subject = ftfy.fix_text(email_subject.decode("utf-8", "ignore"))
-except:
+except Exception:
     email_subject = ftfy.fix_text(email_subject)
 
-if debug:    
+if debug:
     syslog.syslog(email_subject)
     syslog.syslog(email_data)
 
@@ -167,7 +172,7 @@ except Exception as e:
     print("\nTrace:")
     print(e)
     sys.exit(-2)
-    
+
 original_email_data = email_data
 
 # Ignore lines in body of message
@@ -182,7 +187,7 @@ for removeword in removelist:
 auto_publish = False
 autopublish_key = "key:" + m2m_key
 if autopublish_key in email_data:
-    auto_publish = True 
+    auto_publish = True
 
 # Create the MISP event
 misp = init(misp_url, misp_key)
@@ -194,6 +199,7 @@ else:
 # Load the MISP event
 misp_event = MISPEvent()
 misp_event.load(new_event)
+event_id = misp_event.id
 
 # Evaluate classification
 tlp_tag = tlptag_default
@@ -213,7 +219,7 @@ for tag in dependingtags:
         for dependingtag in dependingtags[tag]:
             misp.tag(misp_event.uuid, dependingtag)
 
-## Prepare extraction of IOCs
+# # Prepare extraction of IOCs
 
 # Limit the input if the stopword is found
 email_data = email_data.split(stopword, 1)[0]
@@ -234,9 +240,9 @@ email_data = t_email_data
 email_data = refang(email_data)
 
 
-## Extract various IOCs
+# # Extract various IOCs
 
-urllist = list() 
+urllist = list()
 urllist += re.findall(urlmarker.WEB_URL_REGEX, email_data)
 urllist += re.findall(urlmarker.IP_REGEX, email_data)
 if debug:
@@ -270,17 +276,18 @@ if (len(hashlist_md5) > 0) or (len(hashlist_sha1) > 0) or (len(hashlist_sha256) 
 
 # Add IOCs and expanded information to MISP
 for entry in urllist:
+    hip = MISPObject(name='ip-port', strict=False, uuid='9f8cea74-16fe-4968-a2b4-026676949ac7', version='7')
     ids_flag = True
     f.decode(entry)
     domainname = f.get_domain().decode('utf-8', 'ignore')
     hostname = f.get_host().decode('utf-8', 'ignore')
     try:
         schema = f.get_scheme().decode('utf-8', 'ignore')
-    except:
+    except Exception:
         schema = False
     try:
         resource_path = f.get_resource_path().decode('utf-8', 'ignore')
-    except:
+    except Exception:
         resource_path = False
     if debug:
         syslog.syslog(domainname)
@@ -303,34 +310,39 @@ for entry in urllist:
                     else:
                         if resource_path:
                             add_attribute(new_event, 'url', entry, 'Network activity', ids_flag, False,
-                                sighting, comment=comment)
+                                          sighting, comment=comment)
                         else:
-                            add_attribute(new_event, 'url', entry, 'Network activity', ids_flag, enforcewarninglist, 
-                                sighting, comment=comment)
+                            add_attribute(new_event, 'url', entry, 'Network activity', ids_flag, enforcewarninglist,
+                                          sighting, comment=comment)
                 if debug:
                     syslog.syslog(hostname)
                 try:
                     port = f.get_port().decode('utf-8', 'ignore')
-                except:
-                    port = None 
+                except Exception:
+                    port = None
                 if port:
                     comment = "on port: " + port
                 if is_valid_ipv4_address(hostname):
-                    add_attribute(new_event, 'ip-dst', hostname, 'Network activity', ids_flag, enforcewarninglist, 
-                        sighting, comment=comment)
+                    add_attribute(new_event, 'ip-dst', hostname, 'Network activity', ids_flag, enforcewarninglist,
+                                  sighting, comment=comment)
+                    hip.add_attribute('ip', type='ip-dst', value=hostname, to_ids=ids_flag, comment=comment)
                 else:
-                    add_attribute(new_event, 'hostname', hostname, 'Network activity', ids_flag, enforcewarninglist, 
-                        sighting, comment=comment)
+                    add_attribute(new_event, 'hostname', hostname, 'Network activity', ids_flag, enforcewarninglist,
+                                  sighting, comment=comment)
+                    hip.add_attribute('hostname', type='hostname', value=hostname, to_ids=ids_flag, comment=comment)
                 try:
                     for rdata in dns.resolver.query(hostname, 'A'):
                         if debug:
                             syslog.syslog(str(rdata))
-                        add_attribute(new_event, 'ip-dst', rdata.to_text(), 'Network activity', False, enforcewarninglist, 
-                            sighting, comment=hostname)
+                        add_attribute(new_event, 'ip-dst', rdata.to_text(), 'Network activity', False, enforcewarninglist,
+                                      sighting, comment=hostname)
+                        hip.add_attribute('ip', type='ip-dst', value=rdata.to_text(), to_ids=False)
                 except Exception as e:
                     if debug:
                         syslog.syslog(str(e))
- 
+#    misp_event.add_object(hip)
+#    misp.update_event(event_id, new_event)
+
 # Try to add attachments
 if stdin_used:
     for part in msg.walk():
@@ -345,7 +357,6 @@ if stdin_used:
             attachment = part.get_payload(decode=True)
             if debug:
                 syslog.syslog(str(attachment)[:200])
-            event_id = misp_event.id
             if m2m_attachment_keyword in email_data:
                 misp.add_attachment(misp_event, output_path, filename=filename, category="External analysis")
             else:
