@@ -7,7 +7,7 @@ Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in orde
 - Extraction of URLs and IP addresses (and port numbers) from free text emails
 - Extraction of hostnames from URLs
 - Extraction of hashes (MD5, SHA1, SHA256)
-- DNS expansion 
+- DNS expansion
 - Custom filter list for lines containing specific words
 - Subject filters
 - Respecting TLP classification mentioned in free text (including optional spelling robustness)
@@ -53,7 +53,7 @@ The implemented workflow is mainly for mail servers like Postfix. Client side im
 3. Mozilla Thunderbird [deprecated]
 
 `Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> mail_to_misp -> PyMISP -> MISP`
- 
+
 
 ## Installation
 
@@ -112,7 +112,7 @@ Outlook is not implemented due to lack of test environment. However, it should b
 ```
 import win32com.client
 import pythoncom
- 
+
 class Handler_Class(object):
     def OnNewMailEx(self, receivedItemsIDs):
         for ID in receivedItemsIDs.split(","):
@@ -122,13 +122,13 @@ class Handler_Class(object):
             print "Subj: " + mailItem.Subject
             print "Body: " + mailItem.Body.encode( 'ascii', 'ignore' )
             print "========"
-         
+
 outlook = win32com.client.DispatchWithEvents("Outlook.Application", Handler_Class)
 pythoncom.PumpMessages()
 ```
 (from: https://blog.matthewurch.ca/?p=236)
 
-Obviously, you would like to filter mails based on subject or from address and pass subject and body to mail_to_misp.py in order to do something useful. Pull-requests welcome for actual implementations :) 
+Obviously, you would like to filter mails based on subject or from address and pass subject and body to mail_to_misp.py in order to do something useful. Pull-requests welcome for actual implementations :)
 
 
 ## Requirements
@@ -138,19 +138,11 @@ Obviously, you would like to filter mails based on subject or from address and p
 - mail_to_misp requires access to a MISP instance (via API).
 - Python 3
 - dnspython
-- hashlib
+- PyMISP
 - faup from https://github.com/stricaud/faup
 - urlmarker from https://github.com/rcompton/ryancompton.net/blob/master/assets/praw_drugs/urlmarker.py (contained in this project)
 - ftfy from https://github.com/LuminosoInsight/python-ftfy (to fix unicode text)
-- defang from https://bitbucket.org/johannestaas/defang
-- Patch defang/defang/__init__.py by commenting out the following line (not used && not compatible with Python 3):
-`from urllib2 import urlparse`
-- Optionally patch defang/defang/__init__.py and add at line 47:
-```
-    dirty_line = dirty_line.replace('hxxp', 'http')
-    dirty_line = dirty_line.replace('purr', 'http')
-    dirty_line = dirty_line.replace('meow', 'http')
-```
+- defang from https://github.com/Rafiot/defang.git (fork of: https://bitbucket.org/johannestaas/defang)
 
 ### Thunderbird [deprecated]
 

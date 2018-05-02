@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import sys
 import os
 
 misp_url = 'YOUR_MISP_URL'
-misp_key = 'YOUR_KEY_HERE' # The MISP auth key can be found on the MISP web interface under the automation section
+misp_key = 'YOUR_KEY_HERE'  # The MISP auth key can be found on the MISP web interface under the automation section
 misp_verifycert = True
+body_config_prefix = 'm2m'  # every line in the body starting with this value will be skipped from the IOCs
+spamtrap = False
+
 m2m_key = 'YOUSETYOURKEYHERE'
-m2m_auto_distribution = '3' # 3 = All communities
+m2m_auto_distribution = '3'  # 3 = All communities
 m2m_attachment_keyword = 'attachment:benign'
 
 debug = False
 nameservers = ['149.13.33.69']
-email_subject_prefix = b'M2M - '
+email_subject_prefix = 'M2M'
 attach_original_mail = True
 
 # Paths (should be automatic)
@@ -28,57 +30,56 @@ smtp_port = 25
 excludelist = ('google.com', 'microsoft.com')
 externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')
 internallist = ('internal.system.local')
-noidsflaglist = (   'myexternalip.com', 'ipinfo.io', 'icanhazip.com', 'wtfismyip.com', 'ipecho.net', 
-                    'api.ipify.org', 'checkip.amazonaws.com', 'whatismyipaddress.com', 'google.com', 
-                    'dropbox.com'
-                )
+noidsflaglist = ('myexternalip.com', 'ipinfo.io', 'icanhazip.com', 'wtfismyip.com', 'ipecho.net',
+                 'api.ipify.org', 'checkip.amazonaws.com', 'whatismyipaddress.com', 'google.com',
+                 'dropbox.com'
+                 )
 
 # Stop parsing when this term is found
 stopword = 'Whois & IP Information'
 
 # Ignore lines in body of message containing:
-ignorelist = (".*From: .*\n?", ".*Sender: .*\n?", ".*Received: .*\n?", ".*Sender IP: .*\n?",
-                    ".*Reply-To: .*\n?", ".*Registrar WHOIS Server: .*\n?", ".*Registrar: .*\n?",
-                    ".*Domain Status: .*\n?", ".*Registrant Email: .*\n?", ".*IP Location: .*\n?",
-                    ".*X-Get-Message-Sender-Via: .*\n?", ".*X-Authenticated-Sender: .*\n")
+ignorelist = ("From:", "Sender:", "Received:", "Sender IP:", "Reply-To:", "Registrar WHOIS Server:",
+              "Registrar:", "Domain Status:", "Registrant Email:", "IP Location:",
+              "X-Get-Message-Sender-Via:", "X-Authenticated-Sender:")
 
 # Ignore (don't add) attributes that are on server side warning list
-enforcewarninglist=True
+enforcewarninglist = True
 
 # Add a sighting for each value
-sighting=True
-sighting_source="YOUR_MAIL_TO_MISP_IDENTIFIER"
+sighting = True
+sighting_source = "YOUR_MAIL_TO_MISP_IDENTIFIER"
 
 # Remove "[tags]", "Re: ", "Fwd: " from subject
 removelist = ("[\(\[].*?[\)\]]", "Re: ", "Fwd: ")
 
 # TLP tag setup
 # Tuples contain different variations of spelling
-tlptags = { 'tlp:amber': [ 'tlp:amber', 'tlp: amber', 'tlp amber' ],
-            'tlp:green': [ 'tlp:green', 'tlp: green', 'tlp green' ],
-            'tlp:white': [ 'tlp:white', 'tlp: white', 'tlp white' ]
-          }
+tlptags = {'tlp:amber': ['tlp:amber', 'tlp: amber', 'tlp amber'],
+           'tlp:green': ['tlp:green', 'tlp: green', 'tlp green'],
+           'tlp:white': ['tlp:white', 'tlp: white', 'tlp white']
+           }
 tlptag_default = sorted(tlptags.keys())[0]
 
-malwaretags = { 'locky':    [ 'ecsirt:malicious-code="ransomware"', 'misp-galaxy:ransomware="Locky"' ],
-                'jaff':     [ 'ecsirt:malicious-code="ransomware"', 'misp-galaxy:ransomware="Jaff"' ],
-                'dridex':   [ 'misp-galaxy:tool="dridex"' ],
-                'netwire':  [ 'Netwire RAT' ],
-                'Pony':     [ 'misp-galaxy:tool="Hancitor"' ],
-                'ursnif':   [ 'misp-galaxy:tool="Snifula"' ],
-                'NanoCore': [ 'misp-galaxy:tool="NanoCoreRAT"' ],
-                'trickbot': [ 'misp-galaxy:tool="Trick Bot"' ]
-              }
+malwaretags = {'locky': ['ecsirt:malicious-code="ransomware"', 'misp-galaxy:ransomware="Locky"'],
+               'jaff': ['ecsirt:malicious-code="ransomware"', 'misp-galaxy:ransomware="Jaff"'],
+               'dridex': ['misp-galaxy:tool="dridex"'],
+               'netwire': ['Netwire RAT'],
+               'Pony': ['misp-galaxy:tool="Hancitor"'],
+               'ursnif': ['misp-galaxy:tool="Snifula"'],
+               'NanoCore': ['misp-galaxy:tool="NanoCoreRAT"'],
+               'trickbot': ['misp-galaxy:tool="Trick Bot"']
+               }
 
 # Tags to be set depending on the presence of other tags
-dependingtags = { 'tlp:white': [ 'circl:osint-feed' ]
-                }
+dependingtags = {'tlp:white': ['circl:osint-feed']
+                 }
 
-# Known identifiers for forwarded messages 
-forward_identifiers = { '-------- Forwarded Message --------', 'Begin forwarded message:' }
+# Known identifiers for forwarded messages
+forward_identifiers = {'-------- Forwarded Message --------', 'Begin forwarded message:'}
 
 # Tags to add when hashes are found (e.g. to do automatic expansion)
-hash_only_tags = { 'TODO:VT-ENRICHMENT' }
+hash_only_tags = {'TODO:VT-ENRICHMENT'}
 
 # If an attribute is on any MISP server side `warning list`, skip the creation of the attribute
 skip_item_on_warninglist = True
