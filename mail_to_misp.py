@@ -38,6 +38,8 @@ class Mail2MISP():
         self.misp = PyMISP(misp_url, misp_key, verifycert, debug=config.debug)
         self.debug = config.debug
         self.config = config
+        # Init Faup
+        self.f = Faup()
 
     def load_email(self, pseudofile):
         self.pseudofile = pseudofile
@@ -73,14 +75,14 @@ class Mail2MISP():
             # Search for email forwarded as attachment
             # I could have more than one, attaching everything.
             if attachment.get_filename() and attachment.get_filename().endswith('.eml'):
-                self.forwarded_email(pseudofile=BytesIO(attachment.get_content().encode()))
+                self.forwarded_email(pseudofile=BytesIO(attachment.get_content().as_bytes()))
             else:
                 if self.config_from_email_body.get('attachment') == 'benign':
                     # Attach sane file
                     self.misp_event.add_attribute('attachment', value='Report',
-                                                  data=BytesIO(attachment.get_content().encode()))
+                                                  data=BytesIO(attachment.get_content().as_bytes()))
                 else:
-                    f_object, main_object, sections = make_binary_objects(pseudofile=BytesIO(attachment.get_content().encode()),
+                    f_object, main_object, sections = make_binary_objects(pseudofile=BytesIO(attachment.get_content()),
                                                                           filename=attachment.get_filename(), standalone=False)
                     self.misp_event.add_object(f_object)
                     if main_object:
@@ -99,7 +101,7 @@ class Mail2MISP():
         * Create MISP file objects (uses lief if possible)
         * Set all references
         '''
-        email_object = EMailObject(pseudofile=self.pseudofile, attach_original_mail=True, standalone=False)
+        email_object = EMailObject(pseudofile=pseudofile, attach_original_mail=True, standalone=False)
         if email_object.attachments:
             # Create file objects for the attachments
             for attachment_name, attachment in email_object.attachments:
@@ -110,6 +112,7 @@ class Mail2MISP():
                     for section in sections:
                         self.misp_event.add_object(section)
                 email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
+        self.process_body_iocs(email_object)
         self.misp_event.add_object(email_object)
 
     def process_email_body(self):
@@ -144,22 +147,32 @@ class Mail2MISP():
         # Remove everything after the stopword from the body
         self.clean_email_body = self.clean_email_body.split(config.stopword, 1)[0]
 
-    def process_body_iocs(self):
+    def process_body_iocs(self, email_object=None):
+        if email_object:
+            body = email_object.email.get_body().as_string()
+        else:
+            body = self.clean_email_body
         # Extract and add hashes
         contains_hash = False
-        for h in set(re.findall(hashmarker.MD5_REGEX, self.clean_email_body)):
+        for h in set(re.findall(hashmarker.MD5_REGEX, body)):
             contains_hash = True
-            self.misp_event.add_attribute('md5', h, enforceWarninglist=config.enforcewarninglist)
+            attribute = self.misp_event.add_attribute('md5', h, enforceWarninglist=config.enforcewarninglist)
+            if email_object:
+                email_object.add_reference(attribute.uuid, 'contains')
             if config.sighting:
                 self.sighting(h, config.sighting_source)
-        for h in set(re.findall(hashmarker.SHA1_REGEX, self.clean_email_body)):
+        for h in set(re.findall(hashmarker.SHA1_REGEX, body)):
             contains_hash = True
-            self.misp_event.add_attribute('sha1', h, enforceWarninglist=config.enforcewarninglist)
+            attribute = self.misp_event.add_attribute('sha1', h, enforceWarninglist=config.enforcewarninglist)
+            if email_object:
+                email_object.add_reference(attribute.uuid, 'contains')
             if config.sighting:
                 self.sighting(h, config.sighting_source)
-        for h in set(re.findall(hashmarker.SHA256_REGEX, self.clean_email_body)):
+        for h in set(re.findall(hashmarker.SHA256_REGEX, body)):
             contains_hash = True
-            self.misp_event.add_attribute('sha256', h, enforceWarninglist=config.enforcewarninglist)
+            attribute = self.misp_event.add_attribute('sha256', h, enforceWarninglist=config.enforcewarninglist)
+            if email_object:
+                email_object.add_reference(attribute.uuid, 'contains')
             if config.sighting:
                 self.sighting(h, config.sighting_source)
 
@@ -168,33 +181,30 @@ class Mail2MISP():
 
         # # Extract network IOCs
         urllist = []
-        urllist += re.findall(urlmarker.WEB_URL_REGEX, self.clean_email_body)
-        urllist += re.findall(urlmarker.IP_REGEX, self.clean_email_body)
+        urllist += re.findall(urlmarker.WEB_URL_REGEX, body)
+        urllist += re.findall(urlmarker.IP_REGEX, body)
         if self.debug:
             syslog.syslog(str(urllist))
-
-        # Init Faup
-        f = Faup()
 
         hostname_processed = []
 
         # Add IOCs and expanded information to MISP
         for entry in set(urllist):
             ids_flag = True
-            f.decode(entry)
+            self.f.decode(entry)
 
-            domainname = f.get_domain().decode()
+            domainname = self.f.get_domain().decode()
             if domainname in config.excludelist:
                 # Ignore the entry
                 continue
 
-            hostname = f.get_host().decode()
+            hostname = self.f.get_host().decode()
 
-            scheme = f.get_scheme()
+            scheme = self.f.get_scheme()
             if scheme:
                 scheme = scheme.decode()
 
-            resource_path = f.get_resource_path()
+            resource_path = self.f.get_resource_path()
             if resource_path:
                 resource_path = resource_path.decode()
 
@@ -202,11 +212,15 @@ class Mail2MISP():
                 syslog.syslog(domainname)
 
             if domainname in config.internallist:  # Add link to internal reference
-                self.misp_event.add_attribute('link', entry, category='Internal reference',
-                                              to_ids=False, enforceWarninglist=False)
+                attribute = self.misp_event.add_attribute('link', entry, category='Internal reference',
+                                                          to_ids=False, enforceWarninglist=False)
+                if email_object:
+                    email_object.add_reference(attribute.uuid, 'contains')
             elif domainname in config.externallist:  # External analysis
-                self.misp_event.add_attribute('link', entry, category='External analysis',
-                                              to_ids=False, enforceWarninglist=False)
+                attribute = self.misp_event.add_attribute('link', entry, category='External analysis',
+                                                          to_ids=False, enforceWarninglist=False)
+                if email_object:
+                    email_object.add_reference(attribute.uuid, 'contains')
             else:  # The URL is probably an indicator.
                 comment = ""
                 if (domainname in config.noidsflaglist) or (hostname in config.noidsflaglist):
@@ -217,15 +231,21 @@ class Mail2MISP():
 
                 if scheme:
                     if is_ip(hostname):
-                        self.misp_event.add_attribute('url', entry, to_ids=False,
-                                                      enforceWarninglist=config.enforcewarninglist)
+                        attribute = self.misp_event.add_attribute('url', entry, to_ids=False,
+                                                                  enforceWarninglist=config.enforcewarninglist)
+                        if email_object:
+                            email_object.add_reference(attribute.uuid, 'contains')
                     else:
                         if resource_path:  # URL has path, ignore warning list
-                            self.misp_event.add_attribute('url', entry, to_ids=ids_flag,
-                                                          enforceWarninglist=False, comment=comment)
+                            attribute = self.misp_event.add_attribute('url', entry, to_ids=ids_flag,
+                                                                      enforceWarninglist=False, comment=comment)
+                            if email_object:
+                                email_object.add_reference(attribute.uuid, 'contains')
                         else:  # URL has no path
-                            self.misp_event.add_attribute('url', entry, to_ids=ids_flag,
-                                                          enforceWarninglist=config.enforcewarninglist, comment=comment)
+                            attribute = self.misp_event.add_attribute('url', entry, to_ids=ids_flag,
+                                                                      enforceWarninglist=config.enforcewarninglist, comment=comment)
+                            if email_object:
+                                email_object.add_reference(attribute.uuid, 'contains')
                     if config.sighting:
                         self.sighting(entry, config.sighting_source)
 
@@ -240,15 +260,18 @@ class Mail2MISP():
                 if debug:
                     syslog.syslog(hostname)
 
-                port = f.get_port()
+                comment = ''
+                port = self.f.get_port()
                 if port:
                     port = port.decode()
-                    comment = "on port: " + port
+                    comment = f'on port: {port}'
 
                 if is_ip(hostname):
-                    self.misp_event.add_attribute('ip-dst', hostname, to_ids=ids_flag,
-                                                  enforceWarninglist=config.enforcewarninglist,
-                                                  comment=comment)
+                    attribute = self.misp_event.add_attribute('ip-dst', hostname, to_ids=ids_flag,
+                                                              enforceWarninglist=config.enforcewarninglist,
+                                                              comment=comment)
+                    if email_object:
+                        email_object.add_reference(attribute.uuid, 'contains')
                 else:
                     related_ips = []
                     try:
@@ -268,10 +291,14 @@ class Mail2MISP():
                             hip.add_attribute('ip', type='ip-dst', value=ip, to_ids=False,
                                               enforceWarninglist=config.enforcewarninglist)
                         self.misp_event.add_object(hip)
+                        if email_object:
+                            email_object.add_reference(hip.uuid, 'contains')
                     else:
-                        self.misp_event.add_attribute('hostname', value=hostname,
-                                                      to_ids=ids_flag, enforceWarninglist=config.enforcewarninglist,
-                                                      comment=comment)
+                        attribute = self.misp_event.add_attribute('hostname', value=hostname,
+                                                                  to_ids=ids_flag, enforceWarninglist=config.enforcewarninglist,
+                                                                  comment=comment)
+                        if email_object:
+                            email_object.add_reference(attribute.uuid, 'contains')
 
     def add_event(self):
         '''Add event on the remote MISP instance.'''
@@ -296,7 +323,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Push a Mail into a MISP instance')
     parser.add_argument("-r", "--read", help="Read from tempfile.")
     parser.add_argument("-t", "--trap", action='store_true', default=False, help="Import the Email as-is.")
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('rb'), default=sys.stdin)
+    parser.add_argument('infile', nargs='?', type=argparse.FileType('rb'))
     args = parser.parse_args()
 
     syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
