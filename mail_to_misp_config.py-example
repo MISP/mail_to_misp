@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
 
 misp_url = 'YOUR_MISP_URL'
 misp_key = 'YOUR_KEY_HERE'  # The MISP auth key can be found on the MISP web interface under the automation section
@@ -10,22 +9,12 @@ spamtrap = False
 
 m2m_key = 'YOUSETYOURKEYHERE'
 m2m_auto_distribution = '3'  # 3 = All communities
-m2m_attachment_keyword = 'attachment:benign'
+m2m_benign_attachment_keyword = 'benign'
 
 debug = False
 nameservers = ['149.13.33.69']
 email_subject_prefix = 'M2M'
 attach_original_mail = True
-
-# Paths (should be automatic)
-bindir = os.path.dirname(os.path.realpath(__file__))
-cfgdir = os.path.dirname(os.path.realpath(__file__))
-scriptname = 'mail_to_misp.py'
-binpath = os.path.join(bindir, scriptname)
-
-# for the SPAM trap
-smtp_addr = "127.0.0.1"
-smtp_port = 25
 
 excludelist = ('google.com', 'microsoft.com')
 externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')
@@ -51,7 +40,7 @@ sighting = True
 sighting_source = "YOUR_MAIL_TO_MISP_IDENTIFIER"
 
 # Remove "[tags]", "Re: ", "Fwd: " from subject
-removelist = ("[\(\[].*?[\)\]]", "Re: ", "Fwd: ")
+removelist = ("[\(\[].*?[\)\]]", "Re: ", "Fwd: ", "{Spam?} ")
 
 # TLP tag setup
 # Tuples contain different variations of spelling

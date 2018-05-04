@@ -77,7 +77,7 @@ class Mail2MISP():
             if attachment.get_filename() and attachment.get_filename().endswith('.eml'):
                 self.forwarded_email(pseudofile=BytesIO(attachment.get_content().as_bytes()))
             else:
-                if self.config_from_email_body.get('attachment') == 'benign':
+                if self.config_from_email_body.get('attachment') == config.m2m_benign_attachment_keyword:
                     # Attach sane file
                     self.misp_event.add_attribute('attachment', value='Report',
                                                   data=BytesIO(attachment.get_content().as_bytes()))
