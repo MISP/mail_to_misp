@@ -1,41 +1,38 @@
 #!/usr/bin/python3
-import os
 import sys
-import tempfile
-try:
-    configfile = os.path.basename(sys.argv[0]).split(".py")[0] + "_config"
-except Exception as e:
-    print("Couldn't locate config file {0}".format(configfile))
-    sys.exit(-1)
-try:
-    import smtpd
-    import asyncore
-    import subprocess
-    config = __import__(configfile)
-except ImportError as e:
-    print("(!) Problem loading module:")
-    print(e)
-    sys.exit(-1)
+from pathlib import Path
+import importlib
+from subprocess import run, PIPE
+import aiosmtpd.controller
 
-smtp_addr = config.smtp_addr
-smtp_port = config.smtp_port
-binpath   = config.binpath
 
-print("Starting Fake-SMTP-to-MISP server")
+class CustomSMTPHandler:
+    async def handle_DATA(self, server, session, envelope):
+        print(f'Receiving message from: {session.peer}')
+        print(f'Message addressed from: {envelope.mail_from}')
+        print(f'Message addressed to  : {envelope.rcpt_tos}')
+        print(f'Message length        : {len(envelope.content)}')
+        p = run([binpath, "-"], stdout=PIPE, input=envelope.content)
+        print(p)
+        return '250 OK'
 
-class CustomSMTPServer(smtpd.SMTPServer):
-    def process_message(self, peer, mailfrom, rcpttos, data):
-        print('Receiving message from: {0}'.format(peer))
-        print('Message addressed from: {0}'.format(mailfrom))
-        print('Message addressed to  : {0}'.format(rcpttos))
-        print('Message length        : {0}'.format(len(data)))
-        tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
-        tf.write(data)
-        tf.close()
-        subprocess.call([binpath, "-r", tf.name])
-        os.unlink(tf.name)
-        return
 
-server = CustomSMTPServer((smtp_addr, smtp_port), None)
+if __name__ == '__main__':
+    configmodule = Path(__file__).as_posix().replace('.py', '_config')
+    if Path(f'{configmodule}.py').exists():
+        config = importlib.import_module(configmodule)
+    else:
+        print("Couldn't locate config file {0}".format(f'{configmodule}.py'))
+        sys.exit(-1)
 
-asyncore.loop()
+    smtp_addr = config.smtp_addr
+    smtp_port = config.smtp_port
+    binpath = config.binpath
+
+    print("Starting Fake-SMTP-to-MISP server")
+
+    handler = CustomSMTPHandler()
+    server = aiosmtpd.controller.Controller(handler, hostname=smtp_addr, port=smtp_port)
+    server.start()
+    input("Server started. Press Return to quit.")
+    server.stop()
