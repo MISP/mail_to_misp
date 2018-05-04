@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import argparse
 import re
@@ -328,6 +329,8 @@ if __name__ == '__main__':
 
     syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
     syslog.syslog("Job started.")
+
+    os.chdir(Path(__file__).cwd())
 
     configmodule = Path(__file__).name.replace('.py', '_config')
     if Path(f'{configmodule}.py').exists():
