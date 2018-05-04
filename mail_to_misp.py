@@ -329,7 +329,7 @@ if __name__ == '__main__':
     syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
     syslog.syslog("Job started.")
 
-    configmodule = Path(__file__).as_posix().replace('.py', '_config')
+    configmodule = Path(__file__).name.replace('.py', '_config')
     if Path(f'{configmodule}.py').exists():
         config = importlib.import_module(configmodule)
         try:
