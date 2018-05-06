@@ -136,7 +136,7 @@ Obviously, you would like to filter mails based on subject or from address and p
 ### General
 
 - mail_to_misp requires access to a MISP instance (via API).
-- Python 3
+- Python >=3.6
 - dnspython
 - PyMISP
 - faup from https://github.com/stricaud/faup
@@ -152,5 +152,5 @@ Obviously, you would like to filter mails based on subject or from address and p
 
 This software is licensed under [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html)
 
-* Copyright (C) 2017, 2018 Sascha Rommelfangen
+* Copyright (C) 2017, 2018 Sascha Rommelfangen, Raphaël Vinot
 * Copyright (C) 2017, 2018 CIRCL - Computer Incident Response Center Luxembourg
