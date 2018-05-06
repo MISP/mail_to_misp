@@ -353,7 +353,7 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     if args.infile:
-        pseudofile = BytesIO(args.infile.read().encode())
+        pseudofile = BytesIO(args.infile.read().encode('utf8', 'surrogateescape'))
     elif args.read:
         # read from tempfile
         with open(args.read, 'rb') as f:
