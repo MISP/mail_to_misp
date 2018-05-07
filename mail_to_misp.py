@@ -7,6 +7,7 @@ import argparse
 import re
 import syslog
 from pathlib import Path
+import html
 from io import BytesIO
 from ipaddress import ip_address
 from email import message_from_bytes, policy
@@ -76,15 +77,16 @@ class Mail2MISP():
             # Search for email forwarded as attachment
             # I could have more than one, attaching everything.
             if attachment.get_filename() and attachment.get_filename().endswith('.eml'):
-                forwarded_emails.append(self.forwarded_email(pseudofile=BytesIO(attachment.get_content().as_bytes())))
+                forwarded_emails.append(self.forwarded_email(pseudofile=BytesIO(attachment.get_content())))
             else:
                 if self.config_from_email_body.get('attachment') == self.config.m2m_benign_attachment_keyword:
                     # Attach sane file
-                    self.misp_event.add_attribute('attachment', value='Report',
-                                                  data=BytesIO(attachment.get_content().as_bytes()))
+                    attachment_filename = attachment.get_filename()
+                    if not attachment_filename:
+                        attachment_filename = 'Report.data'
+                    self.misp_event.add_attribute('attachment', value=attachment_filename, data=BytesIO(attachment.get_content()))
                 else:
-                    f_object, main_object, sections = make_binary_objects(pseudofile=BytesIO(attachment.get_content()),
-                                                                          filename=attachment.get_filename(), standalone=False)
+                    f_object, main_object, sections = make_binary_objects(pseudofile=BytesIO(attachment.get_content()), filename=attachment.get_filename(), standalone=False)
                     self.misp_event.add_object(f_object)
                     if main_object:
                         self.misp_event.add_object(main_object)
@@ -93,7 +95,7 @@ class Mail2MISP():
 
     def email_from_spamtrap(self):
         '''The email comes from a spamtrap and should be attached as-is.'''
-        self.clean_email_body = self.original_mail.get_body().as_string()
+        self.clean_email_body = html.unescape(self.original_mail.get_body().get_payload(decode=True).decode())
         return self.forwarded_email(self.pseudofile)
 
     def forwarded_email(self, pseudofile: BytesIO):
@@ -121,14 +123,14 @@ class Mail2MISP():
         return email_object
 
     def process_email_body(self):
-        self.clean_email_body = self.original_mail.get_body().as_string()
+        self.clean_email_body = html.unescape(self.original_mail.get_body().get_payload(decode=True).decode())
         # Check if there are config lines in the body & convert them to a python dictionary:
         #   <config.body_config_prefix>:<key>:<value> => {<key>: <value>}
         self.config_from_email_body = {k: v for k, v in re.findall(f'{config.body_config_prefix}:(.*):(.*)', self.clean_email_body)}
         if self.config_from_email_body:
             # ... remove the config lines from the body
             self.clean_email_body = re.sub(rf'^{config.body_config_prefix}.*\n?', '',
-                                           self.original_mail.get_body().as_string(), flags=re.MULTILINE)
+                                           html.unescape(self.original_mail.get_body().get_payload(decode=True).decode()), flags=re.MULTILINE)
 
         # Check if autopublish key is present and valid
         if self.config_from_email_body.get('m2mkey') == self.config.m2m_key:
@@ -139,7 +141,7 @@ class Mail2MISP():
 
     def process_body_iocs(self, email_object=None):
         if email_object:
-            body = email_object.email.get_body().as_string()
+            body = html.unescape(email_object.email.get_body().get_payload(decode=True).decode())
         else:
             body = self.clean_email_body
 
