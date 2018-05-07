@@ -149,7 +149,7 @@ class Mail2MISP():
             body = re.sub(rf'^{ignoreline}.*\n?', '', body, flags=re.MULTILINE)
 
         # Remove everything after the stopword from the body
-        self.clean_email_body = body.split(config.stopword, 1)[0]
+        body = body.split(self.config.stopword, 1)[0]
 
         # Add tags to the event if keywords are found in the mail
         for tag in self.config.tlptags:
@@ -283,6 +283,7 @@ class Mail2MISP():
                 else:
                     related_ips = []
                     try:
+                        syslog.syslog(hostname)
                         for rdata in dns.resolver.query(hostname, 'A'):
                             if debug:
                                 syslog.syslog(str(rdata))
