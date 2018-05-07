@@ -37,8 +37,8 @@ class Mail2MISP():
 
     def __init__(self, misp_url, misp_key, verifycert, config):
         self.misp = PyMISP(misp_url, misp_key, verifycert, debug=config.debug)
-        self.debug = config.debug
         self.config = config
+        self.debug = self.config.debug
         # Init Faup
         self.f = Faup()
 
@@ -53,10 +53,9 @@ class Mail2MISP():
         # Initialize the MISP event
         self.misp_event = MISPEvent()
         self.misp_event.info = f'{config.email_subject_prefix} - {self.subject}'
-        self.misp_event.distribution = config.m2m_auto_distribution
+        self.misp_event.distribution = self.config.m2m_auto_distribution
         self.misp_event.threat_level_id = 3
         self.misp_event.analysis = 1
-        self.misp_event.add_tag(config.tlptag_default)
 
     def sighting(self, value, source):
         '''Add a sighting'''
@@ -66,19 +65,20 @@ class Mail2MISP():
 
     def _find_inline_forward(self):
         '''Does the body contains a forwarded email?'''
-        for identifier in config.forward_identifiers:
+        for identifier in self.config.forward_identifiers:
             if identifier in self.clean_email_body:
                 self.clean_email_body, fw_email = self.clean_email_body.split(identifier)
-                self.forwarded_email(pseudofile=BytesIO(fw_email.encode()))
+                return self.forwarded_email(pseudofile=BytesIO(fw_email.encode()))
 
     def _find_attached_forward(self):
+        forwarded_emails = []
         for attachment in self.original_mail.iter_attachments():
             # Search for email forwarded as attachment
             # I could have more than one, attaching everything.
             if attachment.get_filename() and attachment.get_filename().endswith('.eml'):
-                self.forwarded_email(pseudofile=BytesIO(attachment.get_content().as_bytes()))
+                forwarded_emails.append(self.forwarded_email(pseudofile=BytesIO(attachment.get_content().as_bytes())))
             else:
-                if self.config_from_email_body.get('attachment') == config.m2m_benign_attachment_keyword:
+                if self.config_from_email_body.get('attachment') == self.config.m2m_benign_attachment_keyword:
                     # Attach sane file
                     self.misp_event.add_attribute('attachment', value='Report',
                                                   data=BytesIO(attachment.get_content().as_bytes()))
@@ -89,11 +89,12 @@ class Mail2MISP():
                     if main_object:
                         self.misp_event.add_object(main_object)
                         [self.misp_event.add_object(section) for section in sections]
+        return forwarded_emails
 
     def email_from_spamtrap(self):
         '''The email comes from a spamtrap and should be attached as-is.'''
         self.clean_email_body = self.original_mail.get_body().as_string()
-        self.forwarded_email(self.pseudofile)
+        return self.forwarded_email(self.pseudofile)
 
     def forwarded_email(self, pseudofile: BytesIO):
         '''Extracts all possible indicators out of an email and create a MISP event out of it.
@@ -117,6 +118,7 @@ class Mail2MISP():
                 email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
         self.process_body_iocs(email_object)
         self.misp_event.add_object(email_object)
+        return email_object
 
     def process_email_body(self):
         self.clean_email_body = self.original_mail.get_body().as_string()
@@ -128,33 +130,36 @@ class Mail2MISP():
             self.clean_email_body = re.sub(rf'^{config.body_config_prefix}.*\n?', '',
                                            self.original_mail.get_body().as_string(), flags=re.MULTILINE)
 
-        self._find_inline_forward()
-        self._find_attached_forward()
-        # # Prepare extraction of IOCs
-        # Refang email data
-        self.clean_email_body = refang(self.clean_email_body)
-
-        # Depending on the source of the mail, there is some cleanup to do. Ignore lines in body of message
-        for ignoreline in config.ignorelist:
-            self.clean_email_body = re.sub(rf'^{ignoreline}.*\n?', '', self.clean_email_body, flags=re.MULTILINE)
-
         # Check if autopublish key is present and valid
-        if self.config_from_email_body.get('m2mkey') == config.m2m_key:
+        if self.config_from_email_body.get('m2mkey') == self.config.m2m_key:
             self.misp_event.publish()
 
-        # Add tags to the event if keywords are found in the mail
-        for tag in config.tlptags:
-            if any(alternativetag in self.clean_email_body for alternativetag in config.tlptags[tag]):
-                self.misp_event.add_tag(tag)
-
-        # Remove everything after the stopword from the body
-        self.clean_email_body = self.clean_email_body.split(config.stopword, 1)[0]
+        self._find_inline_forward()
+        self._find_attached_forward()
 
     def process_body_iocs(self, email_object=None):
         if email_object:
             body = email_object.email.get_body().as_string()
         else:
             body = self.clean_email_body
+
+        # Cleanup body content
+        # Depending on the source of the mail, there is some cleanup to do. Ignore lines in body of message
+        for ignoreline in self.config.ignorelist:
+            body = re.sub(rf'^{ignoreline}.*\n?', '', body, flags=re.MULTILINE)
+
+        # Remove everything after the stopword from the body
+        self.clean_email_body = body.split(config.stopword, 1)[0]
+
+        # Add tags to the event if keywords are found in the mail
+        for tag in self.config.tlptags:
+            if any(alternativetag in self.clean_email_body.lower() for alternativetag in self.config.tlptags[tag]):
+                self.misp_event.add_tag(tag)
+
+        # Prepare extraction of IOCs
+        # Refang email data
+        body = refang(body)
+
         # Extract and add hashes
         contains_hash = False
         for h in set(re.findall(hashmarker.MD5_REGEX, body)):
@@ -162,25 +167,25 @@ class Mail2MISP():
             attribute = self.misp_event.add_attribute('md5', h, enforceWarninglist=config.enforcewarninglist)
             if email_object:
                 email_object.add_reference(attribute.uuid, 'contains')
-            if config.sighting:
-                self.sighting(h, config.sighting_source)
+            if self.config.sighting:
+                self.sighting(h, self.config.sighting_source)
         for h in set(re.findall(hashmarker.SHA1_REGEX, body)):
             contains_hash = True
             attribute = self.misp_event.add_attribute('sha1', h, enforceWarninglist=config.enforcewarninglist)
             if email_object:
                 email_object.add_reference(attribute.uuid, 'contains')
-            if config.sighting:
-                self.sighting(h, config.sighting_source)
+            if self.config.sighting:
+                self.sighting(h, self.config.sighting_source)
         for h in set(re.findall(hashmarker.SHA256_REGEX, body)):
             contains_hash = True
             attribute = self.misp_event.add_attribute('sha256', h, enforceWarninglist=config.enforcewarninglist)
             if email_object:
                 email_object.add_reference(attribute.uuid, 'contains')
-            if config.sighting:
-                self.sighting(h, config.sighting_source)
+            if self.config.sighting:
+                self.sighting(h, self.config.sighting_source)
 
         if contains_hash:
-            [self.misp_event.add_tag(tag) for tag in config.hash_only_tags]
+            [self.misp_event.add_tag(tag) for tag in self.config.hash_only_tags]
 
         # # Extract network IOCs
         urllist = []
@@ -197,7 +202,7 @@ class Mail2MISP():
             self.f.decode(entry)
 
             domainname = self.f.get_domain().decode()
-            if domainname in config.excludelist:
+            if domainname in self.config.excludelist:
                 # Ignore the entry
                 continue
 
@@ -214,19 +219,19 @@ class Mail2MISP():
             if debug:
                 syslog.syslog(domainname)
 
-            if domainname in config.internallist:  # Add link to internal reference
+            if domainname in self.config.internallist:  # Add link to internal reference
                 attribute = self.misp_event.add_attribute('link', entry, category='Internal reference',
                                                           to_ids=False, enforceWarninglist=False)
                 if email_object:
                     email_object.add_reference(attribute.uuid, 'contains')
-            elif domainname in config.externallist:  # External analysis
+            elif domainname in self.config.externallist:  # External analysis
                 attribute = self.misp_event.add_attribute('link', entry, category='External analysis',
                                                           to_ids=False, enforceWarninglist=False)
                 if email_object:
                     email_object.add_reference(attribute.uuid, 'contains')
             else:  # The URL is probably an indicator.
                 comment = ""
-                if (domainname in config.noidsflaglist) or (hostname in config.noidsflaglist):
+                if (domainname in self.config.noidsflaglist) or (hostname in self.config.noidsflaglist):
                     ids_flag = False
                     comment = "Known host (mostly for connectivity test or IP lookup)"
                 if debug:
@@ -249,16 +254,16 @@ class Mail2MISP():
                                                                       enforceWarninglist=config.enforcewarninglist, comment=comment)
                             if email_object:
                                 email_object.add_reference(attribute.uuid, 'contains')
-                    if config.sighting:
-                        self.sighting(entry, config.sighting_source)
+                    if self.config.sighting:
+                        self.sighting(entry, self.config.sighting_source)
 
                 if hostname in hostname_processed:
                     # Hostname already processed.
                     continue
 
                 hostname_processed.append(hostname)
-                if config.sighting:
-                    self.sighting(hostname, config.sighting_source)
+                if self.config.sighting:
+                    self.sighting(hostname, self.config.sighting_source)
 
                 if debug:
                     syslog.syslog(hostname)
@@ -309,15 +314,22 @@ class Mail2MISP():
         # Add additional tags depending on others
         tags = []
         for tag in [t.name for t in self.misp_event.tags]:
-            if config.dependingtags.get(tag):
-                tags += config.dependingtags.get(tag)
+            if self.config.dependingtags.get(tag):
+                tags += self.config.dependingtags.get(tag)
 
         # Add additional tags according to configuration
-        for malware in config.malwaretags:
+        for malware in self.config.malwaretags:
             if malware.lower() in self.subject.lower():
-                tags += config.malwaretags.get(malware)
+                tags += self.config.malwaretags.get(malware)
         if tags:
             [self.misp_event.add_tag(tag) for tag in tags]
+
+        has_tlp_tag = False
+        for tag in [t.name for t in self.misp_event.tags]:
+            if tag.lower().startswith('tlp'):
+                has_tlp_tag = True
+        if not has_tlp_tag:
+            self.misp_event.add_tag(config.tlptag_default)
 
         self.misp.add_event(self.misp_event)
 
