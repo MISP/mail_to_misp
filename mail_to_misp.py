@@ -139,6 +139,8 @@ class Mail2MISP():
                 self.misp_event.publish()
 
             self._find_inline_forward()
+        else:
+            self.clean_email_body = ''
         self._find_attached_forward()
 
     def process_body_iocs(self, email_object=None):
