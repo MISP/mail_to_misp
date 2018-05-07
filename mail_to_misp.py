@@ -107,7 +107,7 @@ class Mail2MISP():
             # Create file objects for the attachments
             for attachment_name, attachment in email_object.attachments:
                 if not attachment_name:
-                    attachment_name = 'NameMissing'
+                    attachment_name = 'NameMissing.txt'
                 f_object, main_object, sections = make_binary_objects(pseudofile=attachment, filename=attachment_name, standalone=False)
                 self.misp_event.add_object(f_object)
                 if main_object:
