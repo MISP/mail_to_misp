@@ -123,20 +123,22 @@ class Mail2MISP():
         return email_object
 
     def process_email_body(self):
-        self.clean_email_body = html.unescape(self.original_mail.get_body().get_payload(decode=True).decode())
-        # Check if there are config lines in the body & convert them to a python dictionary:
-        #   <config.body_config_prefix>:<key>:<value> => {<key>: <value>}
-        self.config_from_email_body = {k: v for k, v in re.findall(f'{config.body_config_prefix}:(.*):(.*)', self.clean_email_body)}
-        if self.config_from_email_body:
-            # ... remove the config lines from the body
-            self.clean_email_body = re.sub(rf'^{config.body_config_prefix}.*\n?', '',
-                                           html.unescape(self.original_mail.get_body().get_payload(decode=True).decode()), flags=re.MULTILINE)
+        mail_as_bytes = self.original_mail.get_body().get_payload(decode=True)
+        if mail_as_bytes:
+            self.clean_email_body = html.unescape(mail_as_bytes.decode())
+            # Check if there are config lines in the body & convert them to a python dictionary:
+            #   <config.body_config_prefix>:<key>:<value> => {<key>: <value>}
+            self.config_from_email_body = {k: v for k, v in re.findall(f'{config.body_config_prefix}:(.*):(.*)', self.clean_email_body)}
+            if self.config_from_email_body:
+                # ... remove the config lines from the body
+                self.clean_email_body = re.sub(rf'^{config.body_config_prefix}.*\n?', '',
+                                               html.unescape(self.original_mail.get_body().get_payload(decode=True).decode()), flags=re.MULTILINE)
 
-        # Check if autopublish key is present and valid
-        if self.config_from_email_body.get('m2mkey') == self.config.m2m_key:
-            self.misp_event.publish()
+            # Check if autopublish key is present and valid
+            if self.config_from_email_body.get('m2mkey') == self.config.m2m_key:
+                self.misp_event.publish()
 
-        self._find_inline_forward()
+            self._find_inline_forward()
         self._find_attached_forward()
 
     def process_body_iocs(self, email_object=None):
