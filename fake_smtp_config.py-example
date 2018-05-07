@@ -6,3 +6,4 @@ binpath = Path(__file__).cwd() / 'mail_to_misp.py'
 
 smtp_addr = '127.0.0.1'
 smtp_port = 2525
+ssl = False
