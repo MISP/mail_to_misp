@@ -153,7 +153,7 @@ class Mail2MISP():
 
         # Add tags to the event if keywords are found in the mail
         for tag in self.config.tlptags:
-            if any(alternativetag in self.clean_email_body.lower() for alternativetag in self.config.tlptags[tag]):
+            if any(alternativetag in body.lower() for alternativetag in self.config.tlptags[tag]):
                 self.misp_event.add_tag(tag)
 
         # Prepare extraction of IOCs
