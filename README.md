@@ -133,6 +133,27 @@ Obviously, you would like to filter mails based on subject or from address and p
 
 ## Requirements
 
+### The easy way
+
+```bash
+# Install faup
+git clone git://github.com/stricaud/faup.git
+cd faup
+mkdir build
+cd build
+cmake .. && make
+sudo make install
+
+# Update Shared libs
+sudo ldconfig
+
+# Install other python requirements
+pip3 install -r requirements.txt
+
+# Test if the script is working
+./mail_to_misp.py -h
+```
+
 ### General
 
 - mail_to_misp requires access to a MISP instance (via API).
