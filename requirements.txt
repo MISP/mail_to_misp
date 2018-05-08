@@ -1,5 +1,7 @@
 dnspython
-pymisp[fileobjects]
+lief
+python-magic
+git+https://github.com/MISP/PyMISP.git
 git+https://github.com/kbandla/pydeep.git
 git+https://github.com/stricaud/faup.git#egg=pyfaup&subdirectory=src/lib/bindings/python
 git+https://github.com/Rafiot/defang.git
