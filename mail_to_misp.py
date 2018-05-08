@@ -77,7 +77,7 @@ class Mail2MISP():
             # Search for email forwarded as attachment
             # I could have more than one, attaching everything.
             if attachment.get_filename() and attachment.get_filename().endswith('.eml'):
-                forwarded_emails.append(self.forwarded_email(pseudofile=BytesIO(attachment.get_content().get_payload(decode=True))))
+                forwarded_emails.append(self.forwarded_email(pseudofile=BytesIO(attachment.get_content().as_bytes())))
             else:
                 filename = attachment.get_filename()
                 if not filename:
