@@ -79,14 +79,14 @@ class Mail2MISP():
             if attachment.get_filename() and attachment.get_filename().endswith('.eml'):
                 forwarded_emails.append(self.forwarded_email(pseudofile=BytesIO(attachment.get_content().get_payload(decode=True))))
             else:
+                filename = attachment.get_filename()
+                if not filename:
+                    filename = 'missing_filename'
                 if self.config_from_email_body.get('attachment') == self.config.m2m_benign_attachment_keyword:
                     # Attach sane file
-                    attachment_filename = attachment.get_filename()
-                    if not attachment_filename:
-                        attachment_filename = 'Report.data'
-                    self.misp_event.add_attribute('attachment', value=attachment_filename, data=BytesIO(attachment.get_content()))
+                    self.misp_event.add_attribute('attachment', value=filename, data=BytesIO(attachment.get_content()))
                 else:
-                    f_object, main_object, sections = make_binary_objects(pseudofile=BytesIO(attachment.get_content()), filename=attachment.get_filename(), standalone=False)
+                    f_object, main_object, sections = make_binary_objects(pseudofile=BytesIO(attachment.get_content()), filename=filename, standalone=False)
                     self.misp_event.add_object(f_object)
                     if main_object:
                         self.misp_event.add_object(main_object)
@@ -95,7 +95,7 @@ class Mail2MISP():
 
     def email_from_spamtrap(self):
         '''The email comes from a spamtrap and should be attached as-is.'''
-        self.clean_email_body = html.unescape(self.original_mail.get_body().get_payload(decode=True).decode())
+        self.clean_email_body = html.unescape(self.original_mail.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode())
         return self.forwarded_email(self.pseudofile)
 
     def forwarded_email(self, pseudofile: BytesIO):
@@ -123,7 +123,7 @@ class Mail2MISP():
         return email_object
 
     def process_email_body(self):
-        mail_as_bytes = self.original_mail.get_body().get_payload(decode=True)
+        mail_as_bytes = self.original_mail.get_body(preferencelist=('html', 'plain')).get_payload(decode=True)
         if mail_as_bytes:
             self.clean_email_body = html.unescape(mail_as_bytes.decode())
             # Check if there are config lines in the body & convert them to a python dictionary:
@@ -132,7 +132,7 @@ class Mail2MISP():
             if self.config_from_email_body:
                 # ... remove the config lines from the body
                 self.clean_email_body = re.sub(rf'^{config.body_config_prefix}.*\n?', '',
-                                               html.unescape(self.original_mail.get_body().get_payload(decode=True).decode()), flags=re.MULTILINE)
+                                               html.unescape(self.original_mail.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode()), flags=re.MULTILINE)
 
             # Check if autopublish key is present and valid
             if self.config_from_email_body.get('m2mkey') == self.config.m2m_key:
@@ -145,7 +145,7 @@ class Mail2MISP():
 
     def process_body_iocs(self, email_object=None):
         if email_object:
-            body = html.unescape(email_object.email.get_body().get_payload(decode=True).decode())
+            body = html.unescape(email_object.email.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode())
         else:
             body = self.clean_email_body
 
