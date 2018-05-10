@@ -95,7 +95,11 @@ class Mail2MISP():
 
     def email_from_spamtrap(self):
         '''The email comes from a spamtrap and should be attached as-is.'''
-        self.clean_email_body = html.unescape(self.original_mail.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode())
+        raw_body = self.original_mail.get_body(preferencelist=('html', 'plain'))
+        if raw_body:
+            self.clean_email_body = html.unescape(raw_body.get_payload(decode=True).decode())
+        else:
+            self.clean_email_body = ''
         return self.forwarded_email(self.pseudofile)
 
     def forwarded_email(self, pseudofile: BytesIO):
