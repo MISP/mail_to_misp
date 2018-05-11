@@ -14,7 +14,7 @@ m2m_benign_attachment_keyword = 'benign'
 debug = False
 nameservers = ['149.13.33.69']
 email_subject_prefix = 'M2M'
-attach_original_mail = True
+attach_original_mail = False
 
 excludelist = ('google.com', 'microsoft.com')
 externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')

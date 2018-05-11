@@ -40,6 +40,7 @@ class Mail2MISP():
         self.misp = PyMISP(misp_url, misp_key, verifycert, debug=config.debug)
         self.config = config
         self.debug = self.config.debug
+        self.config_from_email_body = {}
         # Init Faup
         self.f = Faup()
 
@@ -123,7 +124,8 @@ class Mail2MISP():
                         self.misp_event.add_object(section)
                 email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
         self.process_body_iocs(email_object)
-        self.misp_event.add_object(email_object)
+        if self.config.spamtrap or self.config.attach_original_mail or self.config_from_email_body.get('attach_original_mail'):
+            self.misp_event.add_object(email_object)
         return email_object
 
     def process_email_body(self):
