@@ -49,7 +49,7 @@ class Mail2MISP():
         self.subject = self.original_mail.get('Subject')
         # Remove words from subject
         for removeword in self.config.removelist:
-            self.subject = re.sub(removeword, "", self.subject)
+            self.subject = re.sub(removeword, "", self.subject).strip()
 
         # Initialize the MISP event
         self.misp_event = MISPEvent()
@@ -97,7 +97,7 @@ class Mail2MISP():
         '''The email comes from a spamtrap and should be attached as-is.'''
         raw_body = self.original_mail.get_body(preferencelist=('html', 'plain'))
         if raw_body:
-            self.clean_email_body = html.unescape(raw_body.get_payload(decode=True).decode())
+            self.clean_email_body = html.unescape(raw_body.get_payload(decode=True).decode('utf8', 'surrogateescape'))
         else:
             self.clean_email_body = ''
         return self.forwarded_email(self.pseudofile)
@@ -129,14 +129,14 @@ class Mail2MISP():
     def process_email_body(self):
         mail_as_bytes = self.original_mail.get_body(preferencelist=('html', 'plain')).get_payload(decode=True)
         if mail_as_bytes:
-            self.clean_email_body = html.unescape(mail_as_bytes.decode())
+            self.clean_email_body = html.unescape(mail_as_bytes.decode('utf8', 'surrogateescape'))
             # Check if there are config lines in the body & convert them to a python dictionary:
             #   <config.body_config_prefix>:<key>:<value> => {<key>: <value>}
             self.config_from_email_body = {k: v for k, v in re.findall(f'{config.body_config_prefix}:(.*):(.*)', self.clean_email_body)}
             if self.config_from_email_body:
                 # ... remove the config lines from the body
                 self.clean_email_body = re.sub(rf'^{config.body_config_prefix}.*\n?', '',
-                                               html.unescape(self.original_mail.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode()), flags=re.MULTILINE)
+                                               html.unescape(self.original_mail.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode('utf8', 'surrogateescape')), flags=re.MULTILINE)
 
             # Check if autopublish key is present and valid
             if self.config_from_email_body.get('m2mkey') == self.config.m2m_key:
@@ -149,7 +149,7 @@ class Mail2MISP():
 
     def process_body_iocs(self, email_object=None):
         if email_object:
-            body = html.unescape(email_object.email.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode())
+            body = html.unescape(email_object.email.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode('utf8', 'surrogateescape'))
         else:
             body = self.clean_email_body
 

@@ -39,8 +39,9 @@ enforcewarninglist = True
 sighting = True
 sighting_source = "YOUR_MAIL_TO_MISP_IDENTIFIER"
 
-# Remove "[tags]", "Re: ", "Fwd: " from subject
-removelist = ("[\(\[].*?[\)\]]", "Re: ", "Fwd: ", "{Spam?} ")
+# Remove "Re:", "Fwd:" and {Spam?} from subject
+# add: "[\(\[].*?[\)\]]" to remove everything between [] and (): i.e. [tag]
+removelist = ("Re:", "Fwd:", "\{Spam\?\} ")
 
 # TLP tag setup
 # Tuples contain different variations of spelling
