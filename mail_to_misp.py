@@ -55,9 +55,9 @@ class Mail2MISP():
         # Initialize the MISP event
         self.misp_event = MISPEvent()
         self.misp_event.info = f'{config.email_subject_prefix} - {self.subject}'
-        self.misp_event.distribution = self.config.m2m_auto_distribution
-        self.misp_event.threat_level_id = 3
-        self.misp_event.analysis = 1
+        self.misp_event.distribution = self.config.default_distribution
+        self.misp_event.threat_level_id = self.config.default_threat_level
+        self.misp_event.analysis = self.config.default_analysis
 
     def sighting(self, value, source):
         '''Add a sighting'''
@@ -142,7 +142,14 @@ class Mail2MISP():
 
             # Check if autopublish key is present and valid
             if self.config_from_email_body.get('m2mkey') == self.config.m2m_key:
-                self.misp_event.publish()
+                if self.config_from_email_body.get('distribution'):
+                    self.misp_event.distribution = self.config_from_email_body.get('distribution')
+                if self.config_from_email_body.get('threat_level'):
+                    self.misp_event.threat_level_id = self.config_from_email_body.get('threat_level')
+                if self.config_from_email_body.get('analysis'):
+                    self.misp_event.analysis = self.config_from_email_body.get('analysis')
+                if self.config_from_email_body.get('publish'):
+                    self.misp_event.publish()
 
             self._find_inline_forward()
         else:

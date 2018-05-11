@@ -4,11 +4,13 @@
 misp_url = 'YOUR_MISP_URL'
 misp_key = 'YOUR_KEY_HERE'  # The MISP auth key can be found on the MISP web interface under the automation section
 misp_verifycert = True
-body_config_prefix = 'm2m'  # every line in the body starting with this value will be skipped from the IOCs
 spamtrap = False
+default_distribution = 0
+default_threat_level = 3
+default_analysis = 1
 
+body_config_prefix = 'm2m'  # every line in the body starting with this value will be skipped from the IOCs
 m2m_key = 'YOUSETYOURKEYHERE'
-m2m_auto_distribution = '3'  # 3 = All communities
 m2m_benign_attachment_keyword = 'benign'
 
 debug = False
