@@ -61,7 +61,7 @@ The implemented workflow is mainly for mail servers like Postfix. Client side im
 
 1. Setup a new email address in the aliases file (e.g. /etc/aliases) and configure the correct path:
 
-`misp_handler: "|/path/to/mail_to_misp.py"`
+`misp_handler: "|/path/to/mail_to_misp.py -"`
 
 2. Rebuild the DB:
 
