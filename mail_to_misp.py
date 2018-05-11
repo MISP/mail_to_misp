@@ -134,7 +134,7 @@ class Mail2MISP():
             self.clean_email_body = html.unescape(mail_as_bytes.decode('utf8', 'surrogateescape'))
             # Check if there are config lines in the body & convert them to a python dictionary:
             #   <config.body_config_prefix>:<key>:<value> => {<key>: <value>}
-            self.config_from_email_body = {k: v for k, v in re.findall(f'{config.body_config_prefix}:(.*):(.*)', self.clean_email_body)}
+            self.config_from_email_body = {k.strip(): v.strip() for k, v in re.findall(f'{config.body_config_prefix}:(.*):(.*)', self.clean_email_body)}
             if self.config_from_email_body:
                 # ... remove the config lines from the body
                 self.clean_email_body = re.sub(rf'^{config.body_config_prefix}.*\n?', '',
