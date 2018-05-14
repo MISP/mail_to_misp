@@ -1,0 +1,35 @@
+language: python
+
+cache: pip
+
+sudo: required
+
+addons:
+  apt:
+    sources: [ 'ubuntu-toolchain-r-test' ]
+    packages:
+      - libstdc++6
+      - libfuzzy-dev
+
+python:
+    - "3.6"
+    - "3.6-dev"
+
+install:
+    - git clone git://github.com/stricaud/faup.git
+    - pushd faup/build
+    - cmake .. && make
+    - sudo make install
+    - popd
+    - sudo ldconfig
+    - pip install -U nose pip coverage
+    - pip install -U -r requirements.txt
+    - git submodule init
+    - git submodule update
+
+script:
+    - nosetests --with-coverage --cover-package=mail2misp tests/tests.py
+
+after_success:
+    - codecov
+    - coveralls
