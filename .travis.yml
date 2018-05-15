@@ -22,7 +22,7 @@ install:
     - sudo make install
     - popd
     - sudo ldconfig
-    - pip install -U nose pip coverage
+    - pip install -U nose pip coverage codecov coveralls
     - pip install -U -r requirements.txt
     - git submodule init
     - git submodule update
