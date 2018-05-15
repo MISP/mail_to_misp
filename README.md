@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/MISP/mail_to_misp.svg?branch=master)](https://travis-ci.org/MISP/mail_to_misp)
+[![codecov](https://codecov.io/gh/MISP/mail_to_misp/branch/master/graph/badge.svg)](https://codecov.io/gh/MISP/mail_to_misp)
+
 # mail_to_misp
 
 Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in order to create events based on the information contained within mails.
