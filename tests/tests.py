@@ -60,6 +60,7 @@ class TestMailToMISP(unittest.TestCase):
         self.mail2misp.process_email_body()
         self.mail2misp.process_body_iocs()
         self.assertTrue('attachment' in [a.type for a in self.mail2misp.misp_event.attributes])
+        self.assertTrue(self.mail2misp.misp_event.publish)
 
 if __name__ == '__main__':
     unittest.main()

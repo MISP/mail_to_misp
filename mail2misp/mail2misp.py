@@ -36,6 +36,8 @@ class Mail2MISP():
         if not self.offline:
             self.misp = PyMISP(misp_url, misp_key, verifycert, debug=config.debug)
         self.config = config
+        if not hasattr(self.config, 'enable_dns'):
+            setattr(self.config, 'enable_dns', True)
         self.debug = self.config.debug
         self.config_from_email_body = {}
         # Init Faup
