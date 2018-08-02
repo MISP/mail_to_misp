@@ -14,7 +14,11 @@ from pyfaup.faup import Faup
 from pymisp import PyMISP, MISPEvent, MISPObject, MISPSighting
 from pymisp.tools import EMailObject, make_binary_objects
 from defang import refang
-import dns.resolver
+try:
+    import dns.resolver
+    HAS_DNS = True
+except ImportError:
+    HAS_DNS = False
 
 
 def is_ip(address):
@@ -299,15 +303,16 @@ class Mail2MISP():
                         email_object.add_reference(attribute.uuid, 'contains')
                 else:
                     related_ips = []
-                    try:
-                        syslog.syslog(hostname)
-                        for rdata in dns.resolver.query(hostname, 'A'):
+                    if HAS_DNS and self.config.enable_dns:
+                        try:
+                            syslog.syslog(hostname)
+                            for rdata in dns.resolver.query(hostname, 'A'):
+                                if self.debug:
+                                    syslog.syslog(str(rdata))
+                                related_ips.append(rdata.to_text())
+                        except Exception as e:
                             if self.debug:
-                                syslog.syslog(str(rdata))
-                            related_ips.append(rdata.to_text())
-                    except Exception as e:
-                        if self.debug:
-                            syslog.syslog(str(e))
+                                syslog.syslog(str(e))
 
                     if related_ips:
                         hip = MISPObject(name='ip-port')
