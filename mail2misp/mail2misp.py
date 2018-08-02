@@ -6,7 +6,7 @@ import syslog
 import html
 from io import BytesIO
 from ipaddress import ip_address
-from email import message_from_bytes, policy
+from email import message_from_bytes, policy, message
 
 from . import urlmarker
 from . import hashmarker
@@ -76,19 +76,22 @@ class Mail2MISP():
     def _find_attached_forward(self):
         forwarded_emails = []
         for attachment in self.original_mail.iter_attachments():
+            attachment_content = attachment.get_content()
             # Search for email forwarded as attachment
             # I could have more than one, attaching everything.
-            if attachment.get_filename() and attachment.get_filename().endswith('.eml'):
-                forwarded_emails.append(self.forwarded_email(pseudofile=BytesIO(attachment.get_content().as_bytes())))
+            if isinstance(attachment_content, message.EmailMessage):
+                forwarded_emails.append(self.forwarded_email(pseudofile=BytesIO(attachment_content.as_bytes())))
             else:
+                if isinstance(attachment_content, str):
+                    attachment_content = BytesIO(attachment_content.encode())
                 filename = attachment.get_filename()
                 if not filename:
                     filename = 'missing_filename'
                 if self.config_from_email_body.get('attachment') == self.config.m2m_benign_attachment_keyword:
                     # Attach sane file
-                    self.misp_event.add_attribute('attachment', value=filename, data=BytesIO(attachment.get_content()))
+                    self.misp_event.add_attribute('attachment', value=filename, data=BytesIO(attachment_content))
                 else:
-                    f_object, main_object, sections = make_binary_objects(pseudofile=BytesIO(attachment.get_content()), filename=filename, standalone=False)
+                    f_object, main_object, sections = make_binary_objects(pseudofile=BytesIO(attachment_content), filename=filename, standalone=False)
                     self.misp_event.add_object(f_object)
                     if main_object:
                         self.misp_event.add_object(main_object)
