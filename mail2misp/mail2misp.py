@@ -83,7 +83,7 @@ class Mail2MISP():
                 forwarded_emails.append(self.forwarded_email(pseudofile=BytesIO(attachment_content.as_bytes())))
             else:
                 if isinstance(attachment_content, str):
-                    attachment_content = BytesIO(attachment_content.encode())
+                    attachment_content = attachment_content.encode()
                 filename = attachment.get_filename()
                 if not filename:
                     filename = 'missing_filename'

@@ -62,5 +62,13 @@ class TestMailToMISP(unittest.TestCase):
         self.assertTrue('attachment' in [a.type for a in self.mail2misp.misp_event.attributes])
         self.assertTrue(self.mail2misp.misp_event.publish)
 
+    def test_textfile(self):
+        config = importlib.import_module('tests.config_forward')
+        self.mail2misp = Mail2MISP('', '', '', config=config, offline=True)
+        with open('tests/mails/test_textattachment.eml', 'rb') as f:
+            self.mail2misp.load_email(BytesIO(f.read()))
+        self.mail2misp.process_email_body()
+
+
 if __name__ == '__main__':
     unittest.main()
