@@ -40,7 +40,7 @@ If you send a mail to mail_to_misp containing: `key:ABCDEFGHIJKLMN0PQRSTUVWXYZ` 
 If you don't want to use this feature, just don't put it in the message body.
 The distribution is defined in the configuration as well: `m2m_auto_distribution = '3' # 3 = All communities`
 
-# Pass parameters in the email boddy
+# Pass parameters in the email body
 
 ```
 m2m:<parameter>:<Value>
