@@ -40,6 +40,22 @@ If you send a mail to mail_to_misp containing: `key:ABCDEFGHIJKLMN0PQRSTUVWXYZ` 
 If you don't want to use this feature, just don't put it in the message body.
 The distribution is defined in the configuration as well: `m2m_auto_distribution = '3' # 3 = All communities`
 
+# Pass parameters in the email boddy
+
+```
+m2m:<parameter>:<Value>
+
+# Examples
+m2m:attachment:benign  # Email attachment considered benign (attachment in MISP, malware-sample by default)
+m2m:attach_original_mail:1  # Attach the full original email to the MISP Event (may contain private information)
+
+m2m:m2mkey:YOUSETYOURKEYHERE  # Key required for some actions
+# The following key are ignored if M2M:m2mkey is invalid
+m2m:distribution:<0-3,5> # Note: impossible to pass a sharing group yet.
+m2m:threat_level:<0-2>
+m2m:analysis:<0-3>
+m2m:publish:1  # Autopublish
+```
 
 ## Implementation
 
