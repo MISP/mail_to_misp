@@ -13,6 +13,7 @@ body_config_prefix = 'm2m'  # every line in the body starting with this value wi
 m2m_key = 'YOUSETYOURKEYHERE'
 m2m_benign_attachment_keyword = 'benign'
 
+enable_dns = True
 debug = False
 nameservers = ['149.13.33.69']
 email_subject_prefix = 'M2M'
