@@ -111,13 +111,17 @@ class Mail2MISP():
             for attachment_name, attachment in email_object.attachments:
                 if not attachment_name:
                     attachment_name = 'NameMissing.txt'
-                f_object, main_object, sections = make_binary_objects(pseudofile=attachment, filename=attachment_name, standalone=False)
-                self.misp_event.add_object(f_object)
-                if main_object:
-                    self.misp_event.add_object(main_object)
-                    for section in sections:
-                        self.misp_event.add_object(section)
-                email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
+                if self.config_from_email_body.get('attachment') == self.config.m2m_benign_attachment_keyword:
+                    a = self.misp_event.add_attribute('attachment', value=attachment_name, data=attachment)
+                    email_object.add_reference(a.uuid, 'related-to', 'Email attachment')
+                else:
+                    f_object, main_object, sections = make_binary_objects(pseudofile=attachment, filename=attachment_name, standalone=False)
+                    self.misp_event.add_object(f_object)
+                    if main_object:
+                        self.misp_event.add_object(main_object)
+                        for section in sections:
+                            self.misp_event.add_object(section)
+                    email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
         self.process_body_iocs(email_object)
         if self.config.spamtrap or self.config.attach_original_mail or self.config_from_email_body.get('attach_original_mail'):
             self.misp_event.add_object(email_object)

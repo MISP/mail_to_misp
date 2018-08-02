@@ -52,6 +52,14 @@ class TestMailToMISP(unittest.TestCase):
         event = self.mail2misp.add_event()
         print(event)
 
+    def test_benign(self):
+        config = importlib.import_module('tests.config_forward')
+        self.mail2misp = Mail2MISP('', '', '', config=config, offline=True)
+        with open('tests/mails/test_benign.eml', 'rb') as f:
+            self.mail2misp.load_email(BytesIO(f.read()))
+        self.mail2misp.process_email_body()
+        self.mail2misp.process_body_iocs()
+        self.assertTrue('attachment' in [a.type for a in self.mail2misp.misp_event.attributes])
 
 if __name__ == '__main__':
     unittest.main()
