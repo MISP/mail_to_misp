@@ -69,6 +69,17 @@ class TestMailToMISP(unittest.TestCase):
             self.mail2misp.load_email(BytesIO(f.read()))
         self.mail2misp.process_email_body()
 
+    def test_meta_event(self):
+        config = importlib.import_module('tests.config_forward')
+        self.mail2misp = Mail2MISP('', '', '', config=config, offline=True)
+        with open('tests/mails/test_meta.eml', 'rb') as f:
+            self.mail2misp.load_email(BytesIO(f.read()))
+        self.mail2misp.process_email_body()
+        self.mail2misp.process_body_iocs()
+        self.assertTrue(self.mail2misp.misp_event.publish)
+        self.assertEqual(self.mail2misp.misp_event.distribution, 3)
+        self.assertEqual(self.mail2misp.misp_event.threat_level_id, 2)
+        self.assertEqual(self.mail2misp.misp_event.analysis, 0)
 
 if __name__ == '__main__':
     unittest.main()

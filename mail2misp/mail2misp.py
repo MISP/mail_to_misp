@@ -149,11 +149,11 @@ class Mail2MISP():
                                                html.unescape(self.original_mail.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode('utf8', 'surrogateescape')), flags=re.MULTILINE)
             # Check if autopublish key is present and valid
             if self.config_from_email_body.get('m2mkey') == self.config.m2m_key:
-                if self.config_from_email_body.get('distribution'):
+                if self.config_from_email_body.get('distribution') is not None:
                     self.misp_event.distribution = self.config_from_email_body.get('distribution')
-                if self.config_from_email_body.get('threat_level'):
+                if self.config_from_email_body.get('threat_level') is not None:
                     self.misp_event.threat_level_id = self.config_from_email_body.get('threat_level')
-                if self.config_from_email_body.get('analysis'):
+                if self.config_from_email_body.get('analysis') is not None:
                     self.misp_event.analysis = self.config_from_email_body.get('analysis')
                 if self.config_from_email_body.get('publish'):
                     self.misp_event.publish()
