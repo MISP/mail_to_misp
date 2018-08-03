@@ -77,9 +77,11 @@ class TestMailToMISP(unittest.TestCase):
         self.mail2misp.process_email_body()
         self.mail2misp.process_body_iocs()
         self.assertTrue(self.mail2misp.misp_event.publish)
-        self.assertEqual(self.mail2misp.misp_event.distribution, 3)
-        self.assertEqual(self.mail2misp.misp_event.threat_level_id, 2)
-        self.assertEqual(self.mail2misp.misp_event.analysis, 0)
+        self.assertEqual(self.mail2misp.misp_event.distribution, '3')
+        self.assertEqual(self.mail2misp.misp_event.threat_level_id, '2')
+        self.assertEqual(self.mail2misp.misp_event.analysis, '0')
+        self.mail2misp.add_event()
+
 
 if __name__ == '__main__':
     unittest.main()

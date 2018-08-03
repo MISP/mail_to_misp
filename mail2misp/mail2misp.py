@@ -42,6 +42,7 @@ class Mail2MISP():
         self.config_from_email_body = {}
         # Init Faup
         self.f = Faup()
+        self.sightings_to_add = []
 
     def load_email(self, pseudofile):
         self.pseudofile = pseudofile
@@ -194,21 +195,21 @@ class Mail2MISP():
             if email_object:
                 email_object.add_reference(attribute.uuid, 'contains')
             if self.config.sighting:
-                self.sighting(h, self.config.sighting_source)
+                self.sightings_to_add.append((h, self.config.sighting_source))
         for h in set(re.findall(hashmarker.SHA1_REGEX, body)):
             contains_hash = True
             attribute = self.misp_event.add_attribute('sha1', h, enforceWarninglist=self.config.enforcewarninglist)
             if email_object:
                 email_object.add_reference(attribute.uuid, 'contains')
             if self.config.sighting:
-                self.sighting(h, self.config.sighting_source)
+                self.sightings_to_add.append((h, self.config.sighting_source))
         for h in set(re.findall(hashmarker.SHA256_REGEX, body)):
             contains_hash = True
             attribute = self.misp_event.add_attribute('sha256', h, enforceWarninglist=self.config.enforcewarninglist)
             if email_object:
                 email_object.add_reference(attribute.uuid, 'contains')
             if self.config.sighting:
-                self.sighting(h, self.config.sighting_source)
+                self.sightings_to_add.append((h, self.config.sighting_source))
 
         if contains_hash:
             [self.misp_event.add_tag(tag) for tag in self.config.hash_only_tags]
@@ -281,7 +282,7 @@ class Mail2MISP():
                             if email_object:
                                 email_object.add_reference(attribute.uuid, 'contains')
                     if self.config.sighting:
-                        self.sighting(entry, self.config.sighting_source)
+                        self.sightings_to_add.append((entry, self.config.sighting_source))
 
                 if hostname in hostname_processed:
                     # Hostname already processed.
@@ -289,7 +290,7 @@ class Mail2MISP():
 
                 hostname_processed.append(hostname)
                 if self.config.sighting:
-                    self.sighting(hostname, self.config.sighting_source)
+                    self.sightings_to_add.append((hostname, self.config.sighting_source))
 
                 if self.debug:
                     syslog.syslog(hostname)
@@ -361,4 +362,8 @@ class Mail2MISP():
 
         if self.offline:
             return self.misp_event.to_json()
-        return self.misp.add_event(self.misp_event)
+        event = self.misp.add_event(self.misp_event)
+        if self.config.sighting:
+            for value, source in self.sightings_to_add:
+                self.sighting(value, source)
+        return event
