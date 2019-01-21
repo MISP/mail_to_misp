@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+nose = "*"
+coverage = "*"
+codecov = "*"
+coveralls = "*"
+
+[packages]
+dnspython = "*"
+lief = "*"
+python-magic = "*"
+pydeep = {git = "https://github.com/kbandla/pydeep.git"}
+pyfaup = {git = "https://github.com/stricaud/faup.git",subdirectory = "src/lib/bindings/python"}
+defang = {git = "https://github.com/Rafiot/defang.git"}
+pymisp = {editable = true,git = "https://github.com/MISP/PyMISP.git"}
+
+[requires]
+python_version = "3.6"
