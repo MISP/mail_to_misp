@@ -228,20 +228,20 @@ class Mail2MISP():
             ids_flag = True
             self.f.decode(entry)
 
-            domainname = self.f.get_domain().decode()
+            domainname = self.f.get_domain()
             if domainname in self.config.excludelist:
                 # Ignore the entry
                 continue
 
-            hostname = self.f.get_host().decode()
+            hostname = self.f.get_host()
 
             scheme = self.f.get_scheme()
             if scheme:
-                scheme = scheme.decode()
+                scheme = scheme
 
             resource_path = self.f.get_resource_path()
             if resource_path:
-                resource_path = resource_path.decode()
+                resource_path = resource_path
 
             if self.debug:
                 syslog.syslog(domainname)
@@ -298,7 +298,7 @@ class Mail2MISP():
                 comment = ''
                 port = self.f.get_port()
                 if port:
-                    port = port.decode()
+                    port = port
                     comment = f'on port: {port}'
 
                 if is_ip(hostname):
