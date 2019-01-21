@@ -166,8 +166,10 @@ sudo make install
 # Update Shared libs
 sudo ldconfig
 
+(sudo) pip install (--user) pipenv
+
 # Install other python requirements
-pip3 install -r requirements.txt
+pipenv install
 
 # Test if the script is working
 ./mail_to_misp.py -h
