@@ -1,16 +1,35 @@
 -i https://pypi.org/simple
--e git+https://github.com/MISP/PyMISP.git@d4934cdf5f537c9f42ae37be7878de1848961de0#egg=pymisp
-certifi==2018.11.29
+-e .
+-e git+https://github.com/MISP/PyMISP.git@7c7330fbb96cb037b7d3a84eebc7fe9b8bc094cb#egg=pymisp
+attrs==19.1.0
+certifi==2019.6.16
 chardet==3.0.4
+click==7.0
+decorator==4.4.0
+deprecated==1.2.6
 dnspython==1.16.0
+dominate==2.3.5
+flask-bootstrap==3.3.7.1
+flask==1.1.1
+gevent==1.5a1
 git+https://github.com/Rafiot/defang.git@52972a25313e2899f98f1777b940cb2122566a26#egg=defang
 git+https://github.com/kbandla/pydeep.git@bc0d33bff4b45718b4c5f2c79d4715d92a427eda#egg=pydeep
-git+https://github.com/stricaud/faup.git@de31b6965fc4149c2095c7b721f456e428404736#egg=pyfaup&subdirectory=src/lib/bindings/python
+git+https://github.com/stricaud/faup.git@a5268839130d76ebe2a26e9d7ff497e7d81dc142#egg=pyfaup&subdirectory=src/lib/bindings/python
+greenlet==0.4.15 ; platform_python_implementation == 'CPython'
+gunicorn[gevent]==19.9.0
 idna==2.8
-jsonschema==2.6.0
-lief==0.9.0
-python-dateutil==2.7.5
+itsdangerous==1.1.0
+jinja2==2.10.1
+jsonschema==3.0.1
+lief==0.10.0.dev0
+markupsafe==1.1.1
+pyrsistent==0.15.3
+python-dateutil==2.8.0
 python-magic==0.4.15
-requests==2.21.0
+requests==2.22.0
 six==1.12.0
-urllib3>=1.24.2
+urllib3==1.25.3
+validators==0.13.0
+visitor==0.1.3
+werkzeug==0.15.5
+wrapt==1.11.2
