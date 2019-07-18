@@ -17,6 +17,11 @@ pydeep = {git = "https://github.com/kbandla/pydeep.git"}
 pyfaup = {git = "https://github.com/stricaud/faup.git",subdirectory = "src/lib/bindings/python"}
 defang = {git = "https://github.com/Rafiot/defang.git"}
 pymisp = {editable = true,git = "https://github.com/MISP/PyMISP.git"}
+flask = "*"
+flask-bootstrap = "*"
+mail2misp = {editable = true,path = "."}
+gunicorn = {extras = ["gevent"],version = "*"}
+validators = "*"
 
-[requires]
-python_version = "3.6"
+[pipenv]
+allow_prereleases = true

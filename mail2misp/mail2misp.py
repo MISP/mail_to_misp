@@ -11,8 +11,8 @@ from email import message_from_bytes, policy, message
 from . import urlmarker
 from . import hashmarker
 from pyfaup.faup import Faup
-from pymisp import PyMISP, MISPEvent, MISPObject, MISPSighting
-from pymisp.tools import EMailObject, make_binary_objects
+from pymisp import ExpandedPyMISP, MISPEvent, MISPObject, MISPSighting, InvalidMISPObject
+from pymisp.tools import EMailObject, make_binary_objects, VTReportObject
 from defang import refang
 try:
     import dns.resolver
@@ -34,7 +34,7 @@ class Mail2MISP():
     def __init__(self, misp_url, misp_key, verifycert, config, offline=False):
         self.offline = offline
         if not self.offline:
-            self.misp = PyMISP(misp_url, misp_key, verifycert, debug=config.debug)
+            self.misp = ExpandedPyMISP(misp_url, misp_key, verifycert, debug=config.debug)
         self.config = config
         if not hasattr(self.config, 'enable_dns'):
             setattr(self.config, 'enable_dns', True)
@@ -65,7 +65,7 @@ class Mail2MISP():
         '''Add a sighting'''
         s = MISPSighting()
         s.from_dict(value=value, source=source)
-        self.misp.set_sightings(s)
+        self.misp.add_sighting(s)
 
     def _find_inline_forward(self):
         '''Does the body contains a forwarded email?'''
@@ -126,6 +126,14 @@ class Mail2MISP():
                     email_object.add_reference(a.uuid, 'related-to', 'Email attachment')
                 else:
                     f_object, main_object, sections = make_binary_objects(pseudofile=attachment, filename=attachment_name, standalone=False)
+                    if self.config.vt_key:
+                        try:
+                            vt_object = VTReportObject(self.config.vt_key, f_object.get_attributes_by_relation('sha256')[0].value, standalone=False)
+                            self.misp_event.add_object(vt_object)
+                            f_object.add_reference(vt_object.uuid, 'analysed-with')
+                        except InvalidMISPObject as e:
+                            print(e)
+                            pass
                     self.misp_event.add_object(f_object)
                     if main_object:
                         self.misp_event.add_object(main_object)
@@ -167,6 +175,7 @@ class Mail2MISP():
     def process_body_iocs(self, email_object=None):
         if email_object:
             body = html.unescape(email_object.email.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode('utf8', 'surrogateescape'))
+            self.misp_event.add_object(email_object)
         else:
             body = self.clean_email_body
 
@@ -373,10 +382,9 @@ class Mail2MISP():
 
         if self.offline:
             return self.misp_event.to_json()
-        event = self.misp.update_event(eid, self.misp_event)
+        event = self.misp.update_event(self.misp_event, eid)
         syslog.syslog(str(event))
-        #if self.config.sighting:
+        # if self.config.sighting:
         #    for value, source in self.sightings_to_add:
         #        self.sighting(value, source)
         return event
-
