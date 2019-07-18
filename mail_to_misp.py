@@ -82,13 +82,13 @@ class Mail2MISP():
                     # Attach sane file
                     self.misp_event.add_attribute('attachment', value='Report',
                                                   data=BytesIO(attachment.get_content().as_bytes()))
-                else:
-                    f_object, main_object, sections = make_binary_objects(pseudofile=BytesIO(attachment.get_content()),
-                                                                          filename=attachment.get_filename(), standalone=False)
-                    self.misp_event.add_object(f_object)
-                    if main_object:
-                        self.misp_event.add_object(main_object)
-                        [self.misp_event.add_object(section) for section in sections]
+                #else:
+                    #f_object, main_object, sections = make_binary_objects(pseudofile=BytesIO(attachment.get_content()),
+                    #                                                      filename=attachment.get_filename(), standalone=False)
+                    #self.misp_event.add_object(f_object)
+                    #if main_object:
+                    #    self.misp_event.add_object(main_object)
+                    #    [self.misp_event.add_object(section) for section in sections]
 
     def email_from_spamtrap(self):
         '''The email comes from a spamtrap and should be attached as-is.'''
@@ -108,13 +108,13 @@ class Mail2MISP():
             for attachment_name, attachment in email_object.attachments:
                 if not attachment_name:
                     attachment_name = 'NameMissing'
-                f_object, main_object, sections = make_binary_objects(pseudofile=attachment, filename=attachment_name, standalone=False)
-                self.misp_event.add_object(f_object)
-                if main_object:
-                    self.misp_event.add_object(main_object)
-                    for section in sections:
-                        self.misp_event.add_object(section)
-                email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
+                #f_object, main_object, sections = make_binary_objects(pseudofile=attachment, filename=attachment_name, standalone=False)
+                #self.misp_event.add_object(f_object)
+                #if main_object:
+                #    self.misp_event.add_object(main_object)
+                #    for section in sections:
+                #        self.misp_event.add_object(section)
+                #email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
         self.process_body_iocs(email_object)
         self.misp_event.add_object(email_object)
 
