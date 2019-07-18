@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 
-binpath = Path(__file__).cwd() / 'mail_to_misp.py'
+binpath = Path(__file__).parent / 'mail_to_misp.py'
+binpath_forward = Path(__file__).parent / 'mail_to_misp_forward.py'
+
+email_forward = 'mail2misp@example.com'
 
 smtp_addr = '127.0.0.1'
 smtp_port = 2525
+ssl = False

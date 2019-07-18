@@ -1,0 +1,3 @@
+[submodule "tests/mails"]
+	path = tests/mails
+	url = https://github.com/MISP/mail_to_misp_test.git

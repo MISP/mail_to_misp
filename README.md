@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/MISP/mail_to_misp.svg?branch=master)](https://travis-ci.org/MISP/mail_to_misp)
+[![codecov](https://codecov.io/gh/MISP/mail_to_misp/branch/master/graph/badge.svg)](https://codecov.io/gh/MISP/mail_to_misp)
+
 # mail_to_misp
 
 Connect your mail infrastructure to [MISP](https://github.com/MISP/MISP) in order to create events based on the information contained within mails.
@@ -37,6 +40,22 @@ If you send a mail to mail_to_misp containing: `key:ABCDEFGHIJKLMN0PQRSTUVWXYZ` 
 If you don't want to use this feature, just don't put it in the message body.
 The distribution is defined in the configuration as well: `m2m_auto_distribution = '3' # 3 = All communities`
 
+# Pass parameters in the email body
+
+```
+m2m:<parameter>:<Value>
+
+# Examples
+m2m:attachment:benign  # Email attachment considered benign (attachment in MISP, malware-sample by default)
+m2m:attach_original_mail:1  # Attach the full original email to the MISP Event (may contain private information)
+
+m2m:m2mkey:YOUSETYOURKEYHERE  # Key required for some actions
+# The following key are ignored if M2M:m2mkey is invalid
+m2m:distribution:<0-3,5> # Note: impossible to pass a sharing group yet.
+m2m:threat_level:<0-2>
+m2m:analysis:<0-3>
+m2m:publish:1  # Autopublish
+```
 
 ## Implementation
 
@@ -61,7 +80,7 @@ The implemented workflow is mainly for mail servers like Postfix. Client side im
 
 1. Setup a new email address in the aliases file (e.g. /etc/aliases) and configure the correct path:
 
-`misp_handler: "|/path/to/mail_to_misp.py"`
+`misp_handler: "|/path/to/mail_to_misp.py -"`
 
 2. Rebuild the DB:
 
@@ -132,6 +151,29 @@ Obviously, you would like to filter mails based on subject or from address and p
 
 
 ## Requirements
+
+### The easy way
+
+```bash
+# Install faup
+git clone git://github.com/stricaud/faup.git
+cd faup
+mkdir build
+cd build
+cmake .. && make
+sudo make install
+
+# Update Shared libs
+sudo ldconfig
+
+(sudo) pip install (--user) pipenv
+
+# Install other python requirements
+pipenv install
+
+# Test if the script is working
+./mail_to_misp.py -h
+```
 
 ### General
 

@@ -1,0 +1,16 @@
+-i https://pypi.org/simple
+-e git+https://github.com/MISP/PyMISP.git@d4934cdf5f537c9f42ae37be7878de1848961de0#egg=pymisp
+certifi==2018.11.29
+chardet==3.0.4
+dnspython==1.16.0
+git+https://github.com/Rafiot/defang.git@52972a25313e2899f98f1777b940cb2122566a26#egg=defang
+git+https://github.com/kbandla/pydeep.git@bc0d33bff4b45718b4c5f2c79d4715d92a427eda#egg=pydeep
+git+https://github.com/stricaud/faup.git@de31b6965fc4149c2095c7b721f456e428404736#egg=pyfaup&subdirectory=src/lib/bindings/python
+idna==2.8
+jsonschema==2.6.0
+lief==0.9.0
+python-dateutil==2.7.5
+python-magic==0.4.15
+requests==2.21.0
+six==1.12.0
+urllib3>=1.24.2
