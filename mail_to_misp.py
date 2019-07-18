@@ -68,8 +68,7 @@ if __name__ == '__main__':
     mail2misp.process_body_iocs()
 
     if args.event:
-        misp_event = args.event
-        mail2misp.update_event(event_id=misp_event)
+        mail2misp.update_event(eid=args.event)
     else:
         mail2misp.add_event()
     syslog.syslog("Job finished.")

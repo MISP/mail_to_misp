@@ -246,7 +246,7 @@ class Mail2MISP():
             if self.debug:
                 syslog.syslog(domainname)
 
-            if domainname in self.config.internallist:  # Add link to internal reference
+            if domainname.decode('utf-8') in self.config.internallist:  # Add link to internal reference
                 attribute = self.misp_event.add_attribute('link', entry, category='Internal reference',
                                                           to_ids=False, enforceWarninglist=False)
                 if email_object:
@@ -368,14 +368,15 @@ class Mail2MISP():
                 self.sighting(value, source)
         return event
 
-    def update_event(self, event_id=None):
+    def update_event(self, eid=None):
         '''Update event on the remote MISP instance.'''
 
         if self.offline:
             return self.misp_event.to_json()
-        event = self.misp.update_event(self.misp_event, event_id=event_id)
-        if self.config.sighting:
-            for value, source in self.sightings_to_add:
-                self.sighting(value, source)
+        event = self.misp.update_event(eid, self.misp_event)
+        syslog.syslog(str(event))
+        #if self.config.sighting:
+        #    for value, source in self.sightings_to_add:
+        #        self.sighting(value, source)
         return event
 
