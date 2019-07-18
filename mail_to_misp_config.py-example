@@ -76,3 +76,5 @@ hash_only_tags = {'TODO:VT-ENRICHMENT'}
 
 # If an attribute is on any MISP server side `warning list`, skip the creation of the attribute
 skip_item_on_warninglist = True
+
+vt_key = None

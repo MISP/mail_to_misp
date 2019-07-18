@@ -175,7 +175,6 @@ class Mail2MISP():
     def process_body_iocs(self, email_object=None):
         if email_object:
             body = html.unescape(email_object.email.get_body(preferencelist=('html', 'plain')).get_payload(decode=True).decode('utf8', 'surrogateescape'))
-            self.misp_event.add_object(email_object)
         else:
             body = self.clean_email_body
 
@@ -255,7 +254,7 @@ class Mail2MISP():
             if self.debug:
                 syslog.syslog(domainname)
 
-            if domainname.decode('utf-8') in self.config.internallist:  # Add link to internal reference
+            if domainname in self.config.internallist:  # Add link to internal reference
                 attribute = self.misp_event.add_attribute('link', entry, category='Internal reference',
                                                           to_ids=False, enforceWarninglist=False)
                 if email_object:
@@ -371,7 +370,7 @@ class Mail2MISP():
 
         if self.offline:
             return self.misp_event.to_json()
-        event = self.misp.add_event(self.misp_event)
+        event = self.misp.add_event(self.misp_event, pythonify=True)
         if self.config.sighting:
             for value, source in self.sightings_to_add:
                 self.sighting(value, source)
