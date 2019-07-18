@@ -367,3 +367,15 @@ class Mail2MISP():
             for value, source in self.sightings_to_add:
                 self.sighting(value, source)
         return event
+
+    def update_event(self, event_id=None):
+        '''Update event on the remote MISP instance.'''
+
+        if self.offline:
+            return self.misp_event.to_json()
+        event = self.misp.update_event(self.misp_event, event_id=event_id)
+        if self.config.sighting:
+            for value, source in self.sightings_to_add:
+                self.sighting(value, source)
+        return event
+

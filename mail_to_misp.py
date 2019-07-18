@@ -15,6 +15,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Push a Mail into a MISP instance')
     parser.add_argument("-r", "--read", help="Read from tempfile.")
     parser.add_argument("-t", "--trap", action='store_true', default=False, help="Import the Email as-is.")
+    parser.add_argument("-e", "--event", default=False, help="Add indicators to this MISP event.")
     parser.add_argument('infile', nargs='?', type=argparse.FileType('rb'))
     args = parser.parse_args()
 
@@ -66,5 +67,9 @@ if __name__ == '__main__':
 
     mail2misp.process_body_iocs()
 
-    mail2misp.add_event()
+    if args.event:
+        misp_event = args.event
+        mail2misp.update_event(event_id=misp_event)
+    else:
+        mail2misp.add_event()
     syslog.syslog("Job finished.")
