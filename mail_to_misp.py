@@ -16,6 +16,7 @@ if __name__ == '__main__':
     parser.add_argument("-r", "--read", help="Read from tempfile.")
     parser.add_argument("-t", "--trap", action='store_true', default=False, help="Import the Email as-is.")
     parser.add_argument("-e", "--event", default=False, help="Add indicators to this MISP event.")
+    parser.add_argument("-u", "--urlsonly", default=False, action='store_true', help="Extract only URLs.")
     parser.add_argument('infile', nargs='?', type=argparse.FileType('rb'))
     args = parser.parse_args()
 
@@ -54,7 +55,7 @@ if __name__ == '__main__':
         # receive data and subject through arguments
         raise Exception('This is not implemented anymore.')
 
-    mail2misp = Mail2MISP(misp_url, misp_key, misp_verifycert, config=config)
+    mail2misp = Mail2MISP(misp_url, misp_key, misp_verifycert, config=config, urlsonly=args.event)
     mail2misp.load_email(pseudofile)
 
     if debug:
@@ -67,8 +68,6 @@ if __name__ == '__main__':
 
     mail2misp.process_body_iocs()
 
-    if args.event:
-        mail2misp.update_event(args.event)
-    else:
+    if not args.event:
         mail2misp.add_event()
     syslog.syslog("Job finished.")

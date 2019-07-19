@@ -31,13 +31,16 @@ def is_ip(address):
 
 class Mail2MISP():
 
-    def __init__(self, misp_url, misp_key, verifycert, config, offline=False):
+    def __init__(self, misp_url, misp_key, verifycert, config, offline=False, urlsonly=False):
         self.offline = offline
         if not self.offline:
             self.misp = ExpandedPyMISP(misp_url, misp_key, verifycert, debug=config.debug)
         self.config = config
+        self.urlsonly = urlsonly
         if not hasattr(self.config, 'enable_dns'):
             setattr(self.config, 'enable_dns', True)
+        if self.urlsonly is False:
+            setattr(self.config, 'enable_dns', False)
         self.debug = self.config.debug
         self.config_from_email_body = {}
         # Init Faup
@@ -259,11 +262,14 @@ class Mail2MISP():
                                                           to_ids=False, enforceWarninglist=False)
                 if email_object:
                     email_object.add_reference(attribute.uuid, 'contains')
-            elif domainname in self.config.externallist:  # External analysis
+            elif domainname in self.config.externallist or self.urlsonly is False:  # External analysis
                 attribute = self.misp_event.add_attribute('link', entry, category='External analysis',
                                                           to_ids=False, enforceWarninglist=False)
                 if email_object:
                     email_object.add_reference(attribute.uuid, 'contains')
+            elif domainname in self.config.externallist or self.urlsonly:  # External analysis
+                attribute = self.misp.add_attribute(self.urlsonly, {"type": 'link', "value": entry, "category": 'External analysis',
+                                                          "to_ids": False})
             else:  # The URL is probably an indicator.
                 comment = ""
                 if (domainname in self.config.noidsflaglist) or (hostname in self.config.noidsflaglist):
@@ -339,9 +345,10 @@ class Mail2MISP():
                         if email_object:
                             email_object.add_reference(hip.uuid, 'contains')
                     else:
-                        attribute = self.misp_event.add_attribute('hostname', value=hostname,
-                                                                  to_ids=ids_flag, enforceWarninglist=self.config.enforcewarninglist,
-                                                                  comment=comment)
+                        if self.urlsonly is False:
+                            attribute = self.misp_event.add_attribute('hostname', value=hostname,
+                                                                        to_ids=ids_flag, enforceWarninglist=self.config.enforcewarninglist,
+                                                                        comment=comment)
                         if email_object:
                             email_object.add_reference(attribute.uuid, 'contains')
 
