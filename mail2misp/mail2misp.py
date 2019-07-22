@@ -257,7 +257,7 @@ class Mail2MISP():
             if self.debug:
                 syslog.syslog(domainname)
 
-            if domainname in self.config.internallist:  # Add link to internal reference
+            if domainname in self.config.internallist and self.urlsonly is False:  # Add link to internal reference unless in urlsonly mode
                 attribute = self.misp_event.add_attribute('link', entry, category='Internal reference',
                                                           to_ids=False, enforceWarninglist=False)
                 if email_object:
