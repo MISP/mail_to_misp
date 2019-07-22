@@ -51,6 +51,11 @@ class Mail2MISP():
         self.pseudofile = pseudofile
         self.original_mail = message_from_bytes(self.pseudofile.getvalue(), policy=policy.default)
         self.subject = self.original_mail.get('Subject')
+        #try:
+        #    self.sender = self.original_mail.get('From')
+        #except:
+        #    self.sender = "<unknown>"
+        #        
         # Remove words from subject
         for removeword in self.config.removelist:
             self.subject = re.sub(removeword, "", self.subject).strip()
@@ -268,8 +273,12 @@ class Mail2MISP():
                 if email_object:
                     email_object.add_reference(attribute.uuid, 'contains')
             elif domainname in self.config.externallist or self.urlsonly:  # External analysis
+                if self.urlsonly:
+                    comment = self.subject
+                else:
+                    comment = ""
                 attribute = self.misp.add_attribute(self.urlsonly, {"type": 'link', "value": entry, "category": 'External analysis',
-                                                          "to_ids": False})
+                                                          "to_ids": False, "comment": comment})
             else:  # The URL is probably an indicator.
                 comment = ""
                 if (domainname in self.config.noidsflaglist) or (hostname in self.config.noidsflaglist):
