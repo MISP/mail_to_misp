@@ -40,6 +40,14 @@ If you send a mail to mail_to_misp containing: `key:ABCDEFGHIJKLMN0PQRSTUVWXYZ` 
 If you don't want to use this feature, just don't put it in the message body.
 The distribution is defined in the configuration as well: `m2m_auto_distribution = '3' # 3 = All communities`
 
+For OSINT collection purposes (like collecting URLs to OSINT reports), you can tell `mail_to_misp` to only extract URLs (`--urlsonly`) and append them to a predefined MISP event (`--event N`). The subject of such a mail goes into the comment field of the value.
+
+Example:
+```
+osinturlcollection: "|/path/to/mail_to_misp.py --urlsonly --event 12345 -"
+```
+
+
 # Pass parameters in the email body
 
 ```
@@ -194,5 +202,5 @@ pipenv install
 
 This software is licensed under [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html)
 
-* Copyright (C) 2017, 2018 Sascha Rommelfangen, Raphaël Vinot
-* Copyright (C) 2017, 2018 CIRCL - Computer Incident Response Center Luxembourg
+* Copyright (C) 2017 - 2019 Sascha Rommelfangen, Raphaël Vinot
+* Copyright (C) 2017 - 2019 CIRCL - Computer Incident Response Center Luxembourg
