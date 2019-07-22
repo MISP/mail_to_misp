@@ -73,11 +73,11 @@ The implemented workflow is mainly for mail servers like Postfix. Client side im
 
 `Email -> mail_to_misp`
 
-2. Apple Mail [deprecated]
+2. Apple Mail [unmaintained]
 
 `Email -> Apple Mail -> Mail rule -> AppleScript -> mail_to_misp -> PyMISP -> MISP`
 
-3. Mozilla Thunderbird [deprecated]
+3. Mozilla Thunderbird [unmaintained]
 
 `Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> mail_to_misp -> PyMISP -> MISP`
 
@@ -110,7 +110,7 @@ If you want to process all incoming junk mails automatically and collect the con
 
 `$ sudo python3 fake_smtp.py`
 
-### Apple Mail [deprecated]
+### Apple Mail [unmaintained]
 
 1. Mail rule script
 - git clone this repository
@@ -120,7 +120,7 @@ If you want to process all incoming junk mails automatically and collect the con
 2. Create a mail rule based on your needs, executing the AppleScript defined before
 3. Configure mail_to_misp_config.py
 
-### Thunderbird [deprecated]
+### Thunderbird [unmaintained]
 
 1. Git clone https://github.com/rommelfs/filterscript and install plugin (instructions within the project description)
 2. Mail rule script
@@ -132,7 +132,7 @@ If you want to process all incoming junk mails automatically and collect the con
 
 You should be able to create MISP events now.
 
-### Outlook [deprecated]
+### Outlook [unmaintained]
 
 Outlook is not implemented due to lack of test environment. However, it should be feasible to do it this way:
 
@@ -194,7 +194,7 @@ pipenv install
 - ftfy from https://github.com/LuminosoInsight/python-ftfy (to fix unicode text)
 - defang from https://github.com/Rafiot/defang.git (fork of: https://bitbucket.org/johannestaas/defang)
 
-### Thunderbird [deprecated]
+### Thunderbird [unmaintained]
 
 - https://github.com/rommelfs/filterscript (modified fork from https://github.com/adamnew123456/filterscript)
 
