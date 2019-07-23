@@ -196,8 +196,9 @@ class Mail2MISP():
 
         # Add tags to the event if keywords are found in the mail
         for tag in self.config.tlptags:
-            if any(alternativetag in body.lower() for alternativetag in self.config.tlptags[tag]):
-                self.misp_event.add_tag(tag)
+            for alternativetag in self.config.tlptags[tag]:
+                if alternativetag in body.lower():
+                    self.misp_event.add_tag(tag)
 
         # Prepare extraction of IOCs
         # Refang email data
@@ -279,6 +280,13 @@ class Mail2MISP():
                     comment = ""
                 attribute = self.misp.add_attribute(self.urlsonly, {"type": 'link', "value": entry, "category": 'External analysis',
                                                           "to_ids": False, "comment": comment})
+                for tag in self.config.tlptags:
+                    for alternativetag in self.config.tlptags[tag]:
+                        if alternativetag in self.subject.lower():
+                            self.misp.tag(attribute["uuid"], tag)
+                            new_subject = self.subject.replace(alternativetag, '')
+                            self.misp.change_comment(attribute["uuid"], new_subject)
+
             else:  # The URL is probably an indicator.
                 comment = ""
                 if (domainname in self.config.noidsflaglist) or (hostname in self.config.noidsflaglist):
@@ -390,16 +398,4 @@ class Mail2MISP():
         if self.config.sighting:
             for value, source in self.sightings_to_add:
                 self.sighting(value, source)
-        return event
-
-    def update_event(self, eid=None):
-        '''Update event on the remote MISP instance.'''
-
-        if self.offline:
-            return self.misp_event.to_json()
-        event = self.misp.update_event(self.misp_event, eid)
-        syslog.syslog(str(event))
-        # if self.config.sighting:
-        #    for value, source in self.sightings_to_add:
-        #        self.sighting(value, source)
         return event
