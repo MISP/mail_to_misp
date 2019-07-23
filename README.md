@@ -40,6 +40,14 @@ If you send a mail to mail_to_misp containing: `key:ABCDEFGHIJKLMN0PQRSTUVWXYZ` 
 If you don't want to use this feature, just don't put it in the message body.
 The distribution is defined in the configuration as well: `m2m_auto_distribution = '3' # 3 = All communities`
 
+For OSINT collection purposes (like collecting URLs to OSINT reports), you can tell `mail_to_misp` to only extract URLs (`--urlsonly`) and append them to a predefined MISP event (`--event N`). The subject of such a mail goes into the comment field of the value.
+
+Example:
+```
+osinturlcollection: "|/path/to/mail_to_misp.py --urlsonly --event 12345 -"
+```
+
+
 # Pass parameters in the email body
 
 ```
@@ -65,11 +73,11 @@ The implemented workflow is mainly for mail servers like Postfix. Client side im
 
 `Email -> mail_to_misp`
 
-2. Apple Mail [deprecated]
+2. Apple Mail [unmaintained]
 
 `Email -> Apple Mail -> Mail rule -> AppleScript -> mail_to_misp -> PyMISP -> MISP`
 
-3. Mozilla Thunderbird [deprecated]
+3. Mozilla Thunderbird [unmaintained]
 
 `Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> mail_to_misp -> PyMISP -> MISP`
 
@@ -102,7 +110,7 @@ If you want to process all incoming junk mails automatically and collect the con
 
 `$ sudo python3 fake_smtp.py`
 
-### Apple Mail [deprecated]
+### Apple Mail [unmaintained]
 
 1. Mail rule script
 - git clone this repository
@@ -112,7 +120,7 @@ If you want to process all incoming junk mails automatically and collect the con
 2. Create a mail rule based on your needs, executing the AppleScript defined before
 3. Configure mail_to_misp_config.py
 
-### Thunderbird [deprecated]
+### Thunderbird [unmaintained]
 
 1. Git clone https://github.com/rommelfs/filterscript and install plugin (instructions within the project description)
 2. Mail rule script
@@ -124,7 +132,7 @@ If you want to process all incoming junk mails automatically and collect the con
 
 You should be able to create MISP events now.
 
-### Outlook [deprecated]
+### Outlook [unmaintained]
 
 Outlook is not implemented due to lack of test environment. However, it should be feasible to do it this way:
 
@@ -186,7 +194,7 @@ pipenv install
 - ftfy from https://github.com/LuminosoInsight/python-ftfy (to fix unicode text)
 - defang from https://github.com/Rafiot/defang.git (fork of: https://bitbucket.org/johannestaas/defang)
 
-### Thunderbird [deprecated]
+### Thunderbird [unmaintained]
 
 - https://github.com/rommelfs/filterscript (modified fork from https://github.com/adamnew123456/filterscript)
 
@@ -194,5 +202,5 @@ pipenv install
 
 This software is licensed under [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html)
 
-* Copyright (C) 2017, 2018 Sascha Rommelfangen, Raphaël Vinot
-* Copyright (C) 2017, 2018 CIRCL - Computer Incident Response Center Luxembourg
+* Copyright (C) 2017 - 2019 Sascha Rommelfangen, Raphaël Vinot
+* Copyright (C) 2017 - 2019 CIRCL - Computer Incident Response Center Luxembourg
