@@ -18,6 +18,7 @@ debug = False
 nameservers = ['149.13.33.69']
 email_subject_prefix = 'M2M'
 attach_original_mail = False
+ignore_carrier_mail = False
 
 excludelist = ('google.com', 'microsoft.com')
 externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')

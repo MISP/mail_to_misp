@@ -4,6 +4,7 @@
 import re
 import syslog
 import html
+import os
 from io import BytesIO
 from ipaddress import ip_address
 from email import message_from_bytes, policy, message
@@ -50,15 +51,19 @@ class Mail2MISP():
     def load_email(self, pseudofile):
         self.pseudofile = pseudofile
         self.original_mail = message_from_bytes(self.pseudofile.getvalue(), policy=policy.default)
-        self.subject = self.original_mail.get('Subject')
+
         try:
             self.sender = self.original_mail.get('From')
         except:
             self.sender = "<unknown sender>"
-                
-        # Remove words from subject
-        for removeword in self.config.removelist:
-            self.subject = re.sub(removeword, "", self.subject).strip()
+        
+        try:
+            self.subject = self.original_mail.get('Subject')
+            # Remove words from subject
+            for removeword in self.config.removelist:
+                self.subject = re.sub(removeword, "", self.subject).strip()
+        except:
+            self.subject = "<subject could not be retrieved>"
 
         # Initialize the MISP event
         self.misp_event = MISPEvent()
@@ -399,3 +404,23 @@ class Mail2MISP():
             for value, source in self.sightings_to_add:
                 self.sighting(value, source)
         return event
+
+    def get_attached_emails(self,pseudofile):
+        
+        syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
+        syslog.syslog("get_attached_emails Job started.")
+
+        forwarded_emails = []
+        self.pseudofile = pseudofile
+        self.original_mail = message_from_bytes(self.pseudofile.getvalue(), policy=policy.default)
+        for attachment in self.original_mail.iter_attachments():
+            attachment_content = attachment.get_content()
+            filename = attachment.get_filename()
+            syslog.syslog(f'get_attached_emails: filename = {filename}')
+            # Search for email forwarded as attachment
+            # I could have more than one, attaching everything.
+            if isinstance(attachment, message.EmailMessage) and os.path.splitext(filename)[1] == '.eml':
+                # all attachments are identified as message.EmailMessage so filtering on extension for now.
+                forwarded_emails.append(BytesIO(attachment_content))
+        return forwarded_emails
+

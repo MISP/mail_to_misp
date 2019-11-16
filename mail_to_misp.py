@@ -33,6 +33,7 @@ if __name__ == '__main__':
             misp_key = config.misp_key
             misp_verifycert = config.misp_verifycert
             debug = config.debug
+            ignore_carrier_mail = config.ignore_carrier_mail
         except Exception as e:
             syslog.syslog(str(e))
             print("There is a problem with the configuration. A mandatory configuration variable is not set.")
@@ -55,19 +56,48 @@ if __name__ == '__main__':
         # receive data and subject through arguments
         raise Exception('This is not implemented anymore.')
 
+    syslog.syslog("About to create a mail2misp object.")
     mail2misp = Mail2MISP(misp_url, misp_key, misp_verifycert, config=config, urlsonly=args.event)
-    mail2misp.load_email(pseudofile)
-
-    if debug:
-        syslog.syslog(f'Working on {mail2misp.subject}')
-
-    if args.trap or config.spamtrap:
-        mail2misp.email_from_spamtrap()
+    attached_emails = mail2misp.get_attached_emails(pseudofile)
+    syslog.syslog(f"found {len(attached_emails)} attached emails")
+    if ignore_carrier_mail and len(attached_emails) !=0:
+        syslog.syslog("Ignoring the carrier mail.")
+        while len(attached_emails) !=0:
+            pseudofile = attached_emails.pop()
+            #Throw away the Mail2MISP object of the carrier mail and create a new one for each e-mail attachment
+            mail2misp = Mail2MISP(misp_url, misp_key, misp_verifycert, config=config, urlsonly=args.event)
+            mail2misp.load_email(pseudofile)
+            
+            if debug:
+                syslog.syslog(f'Working on {mail2misp.subject}')
+        
+            if args.trap or config.spamtrap:
+                mail2misp.email_from_spamtrap()
+            else:
+                mail2misp.process_email_body()
+        
+            mail2misp.process_body_iocs()
+        
+            if not args.event:
+                mail2misp.add_event()
+            
+        syslog.syslog("Job finished.")
     else:
-        mail2misp.process_email_body()
+        syslog.syslog("Running standard mail2misp")
+        mail2misp = Mail2MISP(misp_url, misp_key, misp_verifycert, config=config, urlsonly=args.event)
+        mail2misp.load_email(pseudofile)
 
-    mail2misp.process_body_iocs()
+        if debug:
+            syslog.syslog(f'Working on {mail2misp.subject}')
 
-    if not args.event:
-        mail2misp.add_event()
-    syslog.syslog("Job finished.")
+        if args.trap or config.spamtrap:
+            mail2misp.email_from_spamtrap()
+        else:
+            mail2misp.process_email_body()
+    
+        mail2misp.process_body_iocs()
+    
+        if not args.event:
+            mail2misp.add_event()
+        syslog.syslog("Job finished.")
+
