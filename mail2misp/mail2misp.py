@@ -62,8 +62,10 @@ class Mail2MISP():
             # Remove words from subject
             for removeword in self.config.removelist:
                 self.subject = re.sub(removeword, "", self.subject).strip()
-        except:
+        except Exception as ex:
             self.subject = "<subject could not be retrieved>"
+            if self.debug:
+                syslog.syslog(ex)
 
         # Initialize the MISP event
         self.misp_event = MISPEvent()
@@ -407,8 +409,8 @@ class Mail2MISP():
 
     def get_attached_emails(self,pseudofile):
         
-        syslog.openlog(logoption=syslog.LOG_PID, facility=syslog.LOG_USER)
-        syslog.syslog("get_attached_emails Job started.")
+        if self.debug:
+            syslog.syslog("get_attached_emails Job started.")
 
         forwarded_emails = []
         self.pseudofile = pseudofile
@@ -416,7 +418,8 @@ class Mail2MISP():
         for attachment in self.original_mail.iter_attachments():
             attachment_content = attachment.get_content()
             filename = attachment.get_filename()
-            syslog.syslog(f'get_attached_emails: filename = {filename}')
+            if self.debug:
+                syslog.syslog(f'get_attached_emails: filename = {filename}')
             # Search for email forwarded as attachment
             # I could have more than one, attaching everything.
             if isinstance(attachment, message.EmailMessage) and os.path.splitext(filename)[1] == '.eml':
