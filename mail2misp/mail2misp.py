@@ -44,6 +44,9 @@ class Mail2MISP():
             setattr(self.config, 'enable_dns', False)
         self.debug = self.config.debug
         self.config_from_email_body = {}
+        if not hasattr(self.config, 'ignore_nullsize_attachments'):
+            setattr(self.config, 'ignore_nullsize_attachments', False)
+        self.ignore_nullsize_attachments = self.config.ignore_nullsize_attachments
         # Init Faup
         self.f = Faup()
         self.sightings_to_add = []
@@ -134,27 +137,28 @@ class Mail2MISP():
         if email_object.attachments:
             # Create file objects for the attachments
             for attachment_name, attachment in email_object.attachments:
-                if not attachment_name:
-                    attachment_name = 'NameMissing.txt'
-                if self.config_from_email_body.get('attachment') == self.config.m2m_benign_attachment_keyword:
-                    a = self.misp_event.add_attribute('attachment', value=attachment_name, data=attachment)
-                    email_object.add_reference(a.uuid, 'related-to', 'Email attachment')
-                else:
-                    f_object, main_object, sections = make_binary_objects(pseudofile=attachment, filename=attachment_name, standalone=False)
-                    if self.config.vt_key:
-                        try:
-                            vt_object = VTReportObject(self.config.vt_key, f_object.get_attributes_by_relation('sha256')[0].value, standalone=False)
-                            self.misp_event.add_object(vt_object)
-                            f_object.add_reference(vt_object.uuid, 'analysed-with')
-                        except InvalidMISPObject as e:
-                            print(e)
-                            pass
-                    self.misp_event.add_object(f_object)
-                    if main_object:
-                        self.misp_event.add_object(main_object)
-                        for section in sections:
-                            self.misp_event.add_object(section)
-                    email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
+                if not (self.ignore_nullsize_attachments == True and attachment.getbuffer().nbytes == 0):
+                    if not attachment_name:
+                        attachment_name = 'NameMissing.txt'
+                    if self.config_from_email_body.get('attachment') == self.config.m2m_benign_attachment_keyword:
+                        a = self.misp_event.add_attribute('attachment', value=attachment_name, data=attachment)
+                        email_object.add_reference(a.uuid, 'related-to', 'Email attachment')
+                    else:
+                        f_object, main_object, sections = make_binary_objects(pseudofile=attachment, filename=attachment_name, standalone=False)
+                        if self.config.vt_key:
+                            try:
+                                vt_object = VTReportObject(self.config.vt_key, f_object.get_attributes_by_relation('sha256')[0].value, standalone=False)
+                                self.misp_event.add_object(vt_object)
+                                f_object.add_reference(vt_object.uuid, 'analysed-with')
+                            except InvalidMISPObject as e:
+                                print(e)
+                                pass
+                        self.misp_event.add_object(f_object)
+                        if main_object:
+                            self.misp_event.add_object(main_object)
+                            for section in sections:
+                                self.misp_event.add_object(section)
+                        email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
         self.process_body_iocs(email_object)
         if self.config.spamtrap or self.config.attach_original_mail or self.config_from_email_body.get('attach_original_mail'):
             self.misp_event.add_object(email_object)
