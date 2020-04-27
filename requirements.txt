@@ -21,7 +21,7 @@ idna==2.8
 itsdangerous==1.1.0
 jinja2==2.10.1
 jsonschema==3.0.1
-lief==0.10.0.dev0
+lief==0.10.1
 markupsafe==1.1.1
 pyrsistent==0.15.3
 python-dateutil==2.8.0
