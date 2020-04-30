@@ -11,7 +11,7 @@ dnspython==1.16.0
 dominate==2.3.5
 flask-bootstrap==3.3.7.1
 flask==1.1.1
-gevent==1.5a1
+gevent==20.4.0
 git+https://github.com/Rafiot/defang.git@52972a25313e2899f98f1777b940cb2122566a26#egg=defang
 git+https://github.com/kbandla/pydeep.git@bc0d33bff4b45718b4c5f2c79d4715d92a427eda#egg=pydeep
 git+https://github.com/stricaud/faup.git@a5268839130d76ebe2a26e9d7ff497e7d81dc142#egg=pyfaup&subdirectory=src/lib/bindings/python
