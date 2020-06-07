@@ -95,7 +95,12 @@ class Mail2MISP():
     def _find_attached_forward(self):
         forwarded_emails = []
         for attachment in self.original_mail.iter_attachments():
-            attachment_content = attachment.get_content()
+            try:
+                attachment_content = attachment.get_content()
+            except KeyError:
+                # Attachment type has no handler
+                continue
+
             # Search for email forwarded as attachment
             # I could have more than one, attaching everything.
             if isinstance(attachment_content, message.EmailMessage):

@@ -82,12 +82,21 @@ class TestMailToMISP(unittest.TestCase):
         self.assertEqual(self.mail2misp.misp_event.analysis, '0')
         self.mail2misp.add_event()
 
+    def test_nested_mime(self):
+        config = importlib.import_module('tests.config_forward')
+        self.mail2misp = Mail2MISP('', '', '', config=config, offline=True)
+        with open('tests/mails/test_nested_mime.eml', 'rb') as f:
+            self.mail2misp.load_email(BytesIO(f.read()))
+        self.mail2misp.process_email_body()
+        self.assertEqual(self.mail2misp.clean_email_body, 'example.org\r\nwww.example.org\r\n')
+
     def test_attached_emails(self):
         config = importlib.import_module('tests.config_carrier')
         self.mail2misp = Mail2MISP('', '', '', config=config, offline=True)
         with open('tests/mails/test_7_email_attachments.eml', 'rb') as f:
             attached_emails = self.mail2misp.get_attached_emails(BytesIO(f.read()))
         self.assertEqual(len(attached_emails), 7)
+
 
 if __name__ == '__main__':
     unittest.main()
