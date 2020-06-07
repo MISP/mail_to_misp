@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "mail2misp"
+version = "0.1.0"
+description = "Importer of EML files into a MISP instance"
+authors = ["Raphaël Vinot <raphael.vinot@circl.lu>"]
+license = "AGPL-3.0"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+pyfaup = "^1.2"
+dnspython = "^1.16.0"
+lief = "^0.10.1"
+python-magic = "^0.4.18"
+pydeep = "^0.4"
+defang = "^0.5.3"
+pymisp = "^2.4.126"
+flask = "^1.1.2"
+flask-bootstrap = "^3.3.7"
+gunicorn = "^20.0.4"
+validators = "^0.15.0"
+
+[tool.poetry.dev-dependencies]
+coverage = "^5.1"
+codecov = "^2.1.4"
+coveralls = "^2.0.0"
+nose = "^1.3.7"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
