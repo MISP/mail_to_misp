@@ -2,6 +2,11 @@ language: python
 
 cache: pip
 
+addons:
+  apt:
+    packages:
+      - libfuzzy-dev
+
 python:
     - "3.6-dev"
     - "3.7-dev"
