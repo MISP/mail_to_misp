@@ -13,13 +13,11 @@ body_config_prefix = 'm2m'  # every line in the body starting with this value wi
 m2m_key = 'YOUSETYOURKEYHERE'
 m2m_benign_attachment_keyword = 'benign'
 
-enable_dns = True
-debug = False
-nameservers = ['149.13.33.69']
+debug = True
+nameservers = ['8.8.8.8']
 email_subject_prefix = 'M2M'
-attach_original_mail = False
-ignore_carrier_mail = False
-ignore_nullsize_attachments = False
+attach_original_mail = True
+ignore_carrier_mail = True
 
 excludelist = ('google.com', 'microsoft.com')
 externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')
@@ -41,12 +39,12 @@ ignorelist = ("From:", "Sender:", "Received:", "Sender IP:", "Reply-To:", "Regis
 enforcewarninglist = True
 
 # Add a sighting for each value
-sighting = True
+sighting = False
 sighting_source = "YOUR_MAIL_TO_MISP_IDENTIFIER"
 
 # Remove "Re:", "Fwd:" and {Spam?} from subject
 # add: "[\(\[].*?[\)\]]" to remove everything between [] and (): i.e. [tag]
-removelist = (r"Re:", r"Fwd:", r"\{Spam\?\} ")
+removelist = (r'Re:', r'Fwd:', r'\{Spam?\}')
 
 # TLP tag setup
 # Tuples contain different variations of spelling

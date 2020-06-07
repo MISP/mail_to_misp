@@ -82,6 +82,12 @@ class TestMailToMISP(unittest.TestCase):
         self.assertEqual(self.mail2misp.misp_event.analysis, '0')
         self.mail2misp.add_event()
 
+    def test_attached_emails(self):
+        config = importlib.import_module('tests.config_carrier')
+        self.mail2misp = Mail2MISP('', '', '', config=config, offline=True)
+        with open('tests/mails/test_7_email_attachments.eml', 'rb') as f:
+            attached_emails = self.mail2misp.get_attached_emails(BytesIO(f.read()))
+        self.assertEqual(len(attached_emails), 7)
 
 if __name__ == '__main__':
     unittest.main()

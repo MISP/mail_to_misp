@@ -4,6 +4,7 @@
 import re
 import syslog
 import html
+import os
 from io import BytesIO
 from ipaddress import ip_address
 from email import message_from_bytes, policy, message
@@ -43,6 +44,9 @@ class Mail2MISP():
             setattr(self.config, 'enable_dns', False)
         self.debug = self.config.debug
         self.config_from_email_body = {}
+        if not hasattr(self.config, 'ignore_nullsize_attachments'):
+            setattr(self.config, 'ignore_nullsize_attachments', False)
+        self.ignore_nullsize_attachments = self.config.ignore_nullsize_attachments
         # Init Faup
         self.f = Faup()
         self.sightings_to_add = []
@@ -50,15 +54,21 @@ class Mail2MISP():
     def load_email(self, pseudofile):
         self.pseudofile = pseudofile
         self.original_mail = message_from_bytes(self.pseudofile.getvalue(), policy=policy.default)
-        self.subject = self.original_mail.get('Subject')
+
         try:
             self.sender = self.original_mail.get('From')
         except:
             self.sender = "<unknown sender>"
-                
-        # Remove words from subject
-        for removeword in self.config.removelist:
-            self.subject = re.sub(removeword, "", self.subject).strip()
+        
+        try:
+            self.subject = self.original_mail.get('Subject')
+            # Remove words from subject
+            for removeword in self.config.removelist:
+                self.subject = re.sub(removeword, "", self.subject).strip()
+        except Exception as ex:
+            self.subject = "<subject could not be retrieved>"
+            if self.debug:
+                syslog.syslog(ex)
 
         # Initialize the MISP event
         self.misp_event = MISPEvent()
@@ -127,27 +137,28 @@ class Mail2MISP():
         if email_object.attachments:
             # Create file objects for the attachments
             for attachment_name, attachment in email_object.attachments:
-                if not attachment_name:
-                    attachment_name = 'NameMissing.txt'
-                if self.config_from_email_body.get('attachment') == self.config.m2m_benign_attachment_keyword:
-                    a = self.misp_event.add_attribute('attachment', value=attachment_name, data=attachment)
-                    email_object.add_reference(a.uuid, 'related-to', 'Email attachment')
-                else:
-                    f_object, main_object, sections = make_binary_objects(pseudofile=attachment, filename=attachment_name, standalone=False)
-                    if self.config.vt_key:
-                        try:
-                            vt_object = VTReportObject(self.config.vt_key, f_object.get_attributes_by_relation('sha256')[0].value, standalone=False)
-                            self.misp_event.add_object(vt_object)
-                            f_object.add_reference(vt_object.uuid, 'analysed-with')
-                        except InvalidMISPObject as e:
-                            print(e)
-                            pass
-                    self.misp_event.add_object(f_object)
-                    if main_object:
-                        self.misp_event.add_object(main_object)
-                        for section in sections:
-                            self.misp_event.add_object(section)
-                    email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
+                if not (self.ignore_nullsize_attachments == True and attachment.getbuffer().nbytes == 0):
+                    if not attachment_name:
+                        attachment_name = 'NameMissing.txt'
+                    if self.config_from_email_body.get('attachment') == self.config.m2m_benign_attachment_keyword:
+                        a = self.misp_event.add_attribute('attachment', value=attachment_name, data=attachment)
+                        email_object.add_reference(a.uuid, 'related-to', 'Email attachment')
+                    else:
+                        f_object, main_object, sections = make_binary_objects(pseudofile=attachment, filename=attachment_name, standalone=False)
+                        if self.config.vt_key:
+                            try:
+                                vt_object = VTReportObject(self.config.vt_key, f_object.get_attributes_by_relation('sha256')[0].value, standalone=False)
+                                self.misp_event.add_object(vt_object)
+                                f_object.add_reference(vt_object.uuid, 'analysed-with')
+                            except InvalidMISPObject as e:
+                                print(e)
+                                pass
+                        self.misp_event.add_object(f_object)
+                        if main_object:
+                            self.misp_event.add_object(main_object)
+                            for section in sections:
+                                self.misp_event.add_object(section)
+                        email_object.add_reference(f_object.uuid, 'related-to', 'Email attachment')
         self.process_body_iocs(email_object)
         if self.config.spamtrap or self.config.attach_original_mail or self.config_from_email_body.get('attach_original_mail'):
             self.misp_event.add_object(email_object)
@@ -399,3 +410,24 @@ class Mail2MISP():
             for value, source in self.sightings_to_add:
                 self.sighting(value, source)
         return event
+
+    def get_attached_emails(self,pseudofile):
+        
+        if self.debug:
+            syslog.syslog("get_attached_emails Job started.")
+
+        forwarded_emails = []
+        self.pseudofile = pseudofile
+        self.original_mail = message_from_bytes(self.pseudofile.getvalue(), policy=policy.default)
+        for attachment in self.original_mail.iter_attachments():
+            attachment_content = attachment.get_content()
+            filename = attachment.get_filename()
+            if self.debug:
+                syslog.syslog(f'get_attached_emails: filename = {filename}')
+            # Search for email forwarded as attachment
+            # I could have more than one, attaching everything.
+            if isinstance(attachment, message.EmailMessage) and os.path.splitext(filename)[1] == '.eml':
+                # all attachments are identified as message.EmailMessage so filtering on extension for now.
+                forwarded_emails.append(BytesIO(attachment_content))
+        return forwarded_emails
+
