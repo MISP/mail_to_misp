@@ -163,21 +163,10 @@ Obviously, you would like to filter mails based on subject or from address and p
 ### The easy way
 
 ```bash
-# Install faup
-git clone git://github.com/stricaud/faup.git
-cd faup
-mkdir build
-cd build
-cmake .. && make
-sudo make install
-
-# Update Shared libs
-sudo ldconfig
-
-(sudo) pip install (--user) pipenv
+(sudo) pip install (--user) poetry
 
 # Install other python requirements
-pipenv install
+poetry install
 
 # Test if the script is working
 ./mail_to_misp.py -h

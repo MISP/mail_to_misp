@@ -57,9 +57,9 @@ class Mail2MISP():
 
         try:
             self.sender = self.original_mail.get('From')
-        except:
+        except Exception:
             self.sender = "<unknown sender>"
-        
+
         try:
             self.subject = self.original_mail.get('Subject')
             # Remove words from subject
@@ -98,7 +98,7 @@ class Mail2MISP():
             try:
                 attachment_content = attachment.get_content()
             except KeyError:
-                # Attachment type has no handler
+                # Attachment type has no handler
                 continue
 
             # Search for email forwarded as attachment
@@ -142,7 +142,7 @@ class Mail2MISP():
         if email_object.attachments:
             # Create file objects for the attachments
             for attachment_name, attachment in email_object.attachments:
-                if not (self.ignore_nullsize_attachments == True and attachment.getbuffer().nbytes == 0):
+                if not (self.ignore_nullsize_attachments and attachment.getbuffer().nbytes == 0):
                     if not attachment_name:
                         attachment_name = 'NameMissing.txt'
                     if self.config_from_email_body.get('attachment') == self.config.m2m_benign_attachment_keyword:
@@ -291,11 +291,11 @@ class Mail2MISP():
                     email_object.add_reference(attribute.uuid, 'contains')
             elif domainname in self.config.externallist or self.urlsonly:  # External analysis
                 if self.urlsonly:
-                    comment = self.subject + " (from: " + self.sender +")"
+                    comment = self.subject + f" (from: {self.sender})"
                 else:
                     comment = ""
                 attribute = self.misp.add_attribute(self.urlsonly, {"type": 'link', "value": entry, "category": 'External analysis',
-                                                          "to_ids": False, "comment": comment})
+                                                    "to_ids": False, "comment": comment})
                 for tag in self.config.tlptags:
                     for alternativetag in self.config.tlptags[tag]:
                         if alternativetag in self.subject.lower():
@@ -380,8 +380,8 @@ class Mail2MISP():
                     else:
                         if self.urlsonly is False:
                             attribute = self.misp_event.add_attribute('hostname', value=hostname,
-                                                                        to_ids=ids_flag, enforceWarninglist=self.config.enforcewarninglist,
-                                                                        comment=comment)
+                                                                      to_ids=ids_flag, enforceWarninglist=self.config.enforcewarninglist,
+                                                                      comment=comment)
                         if email_object:
                             email_object.add_reference(attribute.uuid, 'contains')
 
@@ -416,8 +416,8 @@ class Mail2MISP():
                 self.sighting(value, source)
         return event
 
-    def get_attached_emails(self,pseudofile):
-        
+    def get_attached_emails(self, pseudofile):
+
         if self.debug:
             syslog.syslog("get_attached_emails Job started.")
 
@@ -435,4 +435,3 @@ class Mail2MISP():
                 # all attachments are identified as message.EmailMessage so filtering on extension for now.
                 forwarded_emails.append(BytesIO(attachment_content))
         return forwarded_emails
-
