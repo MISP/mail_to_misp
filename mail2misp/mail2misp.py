@@ -284,7 +284,7 @@ class Mail2MISP():
                                                           to_ids=False, enforceWarninglist=False)
                 if email_object:
                     email_object.add_reference(attribute.uuid, 'contains')
-            elif domainname in self.config.externallist or self.urlsonly is False:  # External analysis
+            elif domainname in self.config.externallist and self.urlsonly is False:  # External analysis
                 attribute = self.misp_event.add_attribute('link', entry, category='External analysis',
                                                           to_ids=False, enforceWarninglist=False)
                 if email_object:
