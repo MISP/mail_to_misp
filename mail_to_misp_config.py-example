@@ -8,6 +8,7 @@ spamtrap = False
 default_distribution = 0
 default_threat_level = 3
 default_analysis = 1
+freetext = False
 
 body_config_prefix = 'm2m'  # every line in the body starting with this value will be skipped from the IOCs
 m2m_key = 'YOUSETYOURKEYHERE'

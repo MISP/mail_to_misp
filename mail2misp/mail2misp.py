@@ -414,6 +414,8 @@ class Mail2MISP():
         if self.config.sighting:
             for value, source in self.sightings_to_add:
                 self.sighting(value, source)
+        if self.config.freetext:
+            self.misp.freetext(event, string=self.original_mail.get_body(preferencelist=('html', 'plain')), adhereToWarninglists=self.config.enforcewarninglist)
         return event
 
     def get_attached_emails(self, pseudofile):
