@@ -4,6 +4,13 @@ version = "0.1.0"
 description = "Importer of EML files into a MISP instance"
 authors = ["Raphaël Vinot <raphael.vinot@circl.lu>"]
 license = "AGPL-3.0"
+repository = "https://github.com/MISP/mail_to_misp"
+
+readme = "README.md"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/MISP/mail_to_misp/issues"
+"Source" = "https://github.com/MISP/mail_to_misp"
 
 [tool.poetry.dependencies]
 python = "^3.6"
@@ -19,6 +26,16 @@ flask-bootstrap = "^3.3.7"
 gunicorn = "^20.0.4"
 validators = "^0.15.0"
 
+[tool.poetry.extras]
+fileobjects = ['python-magic', 'pydeep', 'lief']
+openioc = ['beautifulsoup4']
+virustotal = ['validators']
+docs = ['sphinx-autodoc-typehints', 'recommonmark']
+pdfexport = ['reportlab']
+url = ['pyfaup']
+email = ['extract_msg', "RTFDE", "oletools"]
+brotli = ['urllib3']
+
 [tool.poetry.dev-dependencies]
 coverage = "^5.1"
 codecov = "^2.1.4"
@@ -26,5 +43,5 @@ coveralls = "^2.0.0"
 nose = "^1.3.7"
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["poetry_core>=1.0", "setuptools"]
+build-backend = "poetry.core.masonry.api"
