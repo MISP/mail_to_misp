@@ -192,4 +192,4 @@ poetry install
 This software is licensed under [GNU Affero General Public License version 3](http://www.gnu.org/licenses/agpl-3.0.html)
 
 * Copyright (C) 2017 - 2019 Sascha Rommelfangen, Raphaël Vinot
-* Copyright (C) 2017 - 2019 CIRCL - Computer Incident Response Center Luxembourg
+* Copyright (C) 2017 - 2021 CIRCL - Computer Incident Response Center Luxembourg
