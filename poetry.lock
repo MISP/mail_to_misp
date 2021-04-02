@@ -1013,7 +1013,7 @@ name = "pyfaup"
 version = "1.2"
 description = "Python bindings for the faup library"
 category = "main"
-optional = true
+optional = false
 python-versions = "*"
 
 [[package]]
