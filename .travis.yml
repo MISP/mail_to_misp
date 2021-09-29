@@ -14,7 +14,7 @@ python:
 
 install:
     - pip install poetry
-    - poetry install
+    - poetry install -E fileobjects -E openioc -E virustotal -E docs -E pdfexport -E email
     - git submodule init
     - git submodule update
 
