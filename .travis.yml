@@ -13,7 +13,7 @@ python:
     - "3.8-dev"
 
 install:
-    - pip install poetry
+    - pip install poetry chardet
     - poetry install -E fileobjects -E openioc -E virustotal -E docs -E pdfexport -E email
     - git submodule init
     - git submodule update
