@@ -76,6 +76,7 @@ class Mail2MISP():
         self.misp_event.distribution = self.config.default_distribution
         self.misp_event.threat_level_id = self.config.default_threat_level
         self.misp_event.analysis = self.config.default_analysis
+        self.misp_event.add_tag(self.config.id_tag)
 
     def sighting(self, value, source):
         if self.offline:

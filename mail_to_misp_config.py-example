@@ -6,8 +6,9 @@ misp_key = 'YOUR_KEY_HERE'  # The MISP auth key can be found on the MISP web int
 misp_verifycert = True
 spamtrap = False
 default_distribution = 0
-default_threat_level = 3
+default_threat_level = 4
 default_analysis = 1
+id_tag = 'host:m2m:tld'
 freetext = False
 
 body_config_prefix = 'm2m'  # every line in the body starting with this value will be skipped from the IOCs
