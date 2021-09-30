@@ -44,7 +44,7 @@ sighting_source = "YOUR_MAIL_TO_MISP_IDENTIFIER"
 
 # Remove "Re:", "Fwd:" and {Spam?} from subject
 # add: "[\(\[].*?[\)\]]" to remove everything between [] and (): i.e. [tag]
-removelist = (r'Re:', r'Fwd:', r'\{Spam?\}')
+removelist = (r'Re:', r'Fwd:', r'\{Spam\?\}')
 
 # TLP tag setup
 # Tuples contain different variations of spelling

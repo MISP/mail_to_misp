@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/MISP/mail_to_misp.svg?branch=main)](https://travis-ci.com/MISP/mail_to_misp)
+[![Build Status](https://app.travis-ci.com/MISP/mail_to_misp.svg?branch=main)](https://app.travis-ci.com/MISP/mail_to_misp)
 [![codecov](https://codecov.io/gh/MISP/mail_to_misp/branch/main/graph/badge.svg)](https://codecov.io/gh/MISP/mail_to_misp)
 
 # mail_to_misp
@@ -100,11 +100,12 @@ You should now be able to send your IoC-containing mails to misp_handler@YOURDOM
 
 #### Bonus: Fake-SMTPD spamtrap
 
-If you want to process all incoming junk mails automatically and collect the contained information in a (separate?) MISP instance, you could use the fake_smtp.py script. It listens on port 25, accepts all mails and pushes them through mail_to_misp to a MISP instance.
+If you want to process all incoming junk mails automatically and collect the contained information in a separate throw-away MISP instance, you could use the fake_smtp.py script. It listens on port 25, accepts all mails and pushes them through mail_to_misp to a MISP instance.
+It can also be configured to listen on an SSL port. (465)
 
 1. Configure mail_to_misp_config.py
 
-2. ln -s  mail_to_misp_config.py fake_smtp_config.py
+2. cp mail_to_misp_config.py fake_smtp_config.py
 
 3. Make port 25 accessible to normal users
 
@@ -172,10 +173,10 @@ Obviously, you would like to filter mails based on subject or from address and p
 ### The easy way
 
 ```bash
-(sudo) pip install (--user) poetry
+pip install --user poetry
 
 # Install other python requirements
-poetry install
+poetry install -E fileobjects -E openioc -E virustotal -E email -E url
 
 # Test if the script is working
 ./mail_to_misp.py -h
