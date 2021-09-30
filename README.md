@@ -105,7 +105,7 @@ It can also be configured to listen on an SSL port. (465)
 
 1. Configure mail_to_misp_config.py
 
-2. cp mail_to_misp_config.py fake_smtp_config.py
+2. cp fake_smtp_config.py-example fake_smtp_config.py
 
 3. Make port 25 accessible to normal users
 
