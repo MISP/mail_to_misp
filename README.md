@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/MISP/mail_to_misp.svg?branch=main)](https://travis-ci.org/MISP/mail_to_misp)
+[![Build Status](https://travis-ci.com/MISP/mail_to_misp.svg?branch=main)](https://travis-ci.org/MISP/mail_to_misp)
 [![codecov](https://codecov.io/gh/MISP/mail_to_misp/branch/main/graph/badge.svg)](https://codecov.io/gh/MISP/mail_to_misp)
 
 # mail_to_misp
@@ -106,9 +106,18 @@ If you want to process all incoming junk mails automatically and collect the con
 
 2. ln -s  mail_to_misp_config.py fake_smtp_config.py
 
-3. Run fake_smtp.py (as root)
+3. Make port 25 accessible to normal users
 
-`$ sudo python3 fake_smtp.py`
+```
+$ sudo apt install authbind
+$ sudo touch /etc/authbind/byport/25
+$ sudo chown misp:misp /etc/authbind/byport/25
+$ sudo chmod 770 /etc/authbind/byport/25
+```
+
+4. Run fake_smtp.py
+
+`$ python3 fake_smtp.py`
 
 ### Apple Mail [unmaintained]
 
