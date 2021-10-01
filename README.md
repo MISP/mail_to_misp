@@ -1,4 +1,4 @@
-[![Build Status](https://app.travis-ci.com/MISP/mail_to_misp.svg?branch=main)](https://app.travis-ci.com/MISP/mail_to_misp)
+[![Build Status](https://app.travis-ci.com/SteveClement/mail_to_misp.svg?branch=main)](https://app.travis-ci.com/SteveClement/mail_to_misp)
 [![codecov](https://codecov.io/gh/MISP/mail_to_misp/branch/main/graph/badge.svg)](https://codecov.io/gh/MISP/mail_to_misp)
 
 # mail_to_misp

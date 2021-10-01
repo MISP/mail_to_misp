@@ -54,6 +54,7 @@ if __name__ == '__main__':
     parser.add_argument("--host", default='127.0.0.1', help="IP to attach the SMTP server to.")
     parser.add_argument("--port", default='2525', help="Port of the SMTP server")
     parser.add_argument("--ssl", action='store_true', help="Pure SMTPs.")
+    parser.add_argument("--ident", default='Python SMTPd', help="SMTPd ident string")
     args = parser.parse_args()
 
     configmodule = Path(__file__).as_posix().replace('.py', '_config')
@@ -65,6 +66,7 @@ if __name__ == '__main__':
         smtp_addr = config.smtp_addr
         smtp_port = config.smtp_port
         smtps = config.ssl
+        ident = config.ident
     else:
         binpath = args.path
         binpath_forward = args.path_forward
@@ -72,14 +74,15 @@ if __name__ == '__main__':
         smtp_addr = args.host
         smtp_port = args.port
         smtps = args.ssl
+        ident = args.ident
 
     print("Starting Fake-SMTP-to-MISP server")
 
     handler = CustomSMTPHandler()
     if smtps:
-        server = ControllerSSL(handler, hostname=smtp_addr, port=smtp_port)
+        server = ControllerSSL(handler, hostname=smtp_addr, port=smtp_port, ident=ident)
     else:
-        server = ControllerSTARTTLS(handler, hostname=smtp_addr, port=smtp_port)
+        server = ControllerSTARTTLS(handler, hostname=smtp_addr, port=smtp_port, ident=ident)
     server.start()
     input("Server started. Press Return to quit.")
     server.stop()
