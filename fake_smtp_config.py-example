@@ -5,6 +5,9 @@ from pathlib import Path
 binpath = Path(__file__).parent / 'mail_to_misp.py'
 binpath_forward = Path(__file__).parent / 'mail_to_misp_forward.py'
 
+# default ident: <hostname> Python SMTP 1.4.2
+ident = 'ESMTP Postfix (Ubuntu)'
+
 email_forward = 'mail2misp@example.com'
 
 smtp_addr = '127.0.0.1'
