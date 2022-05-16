@@ -57,7 +57,7 @@ codecov = "^2.1.10"
 requests-mock = "^1.8.0"
 mypy = "^0.910"
 flake8 = "^3.8.4"
-ipython = "^7.16.1"
+ipython = "^7.16.3"
 jupyterlab = "^2.2.9"
 # jedi 0.18.0 breaks ipython
 jedi = "<0.18.0"
