@@ -1011,14 +1011,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "pillow"
-version = "8.3.2"
-description = "Python Imaging Library (Fork)"
-category = "main"
-optional = true
-python-versions = ">=3.6"
-
-[[package]]
 name = "prometheus-client"
 version = "0.11.0"
 description = "Python client for the Prometheus monitoring system."
