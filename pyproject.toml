@@ -13,31 +13,31 @@ readme = "README.md"
 "Source" = "https://github.com/MISP/mail_to_misp"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.8.1"
 requests = "^2.28.1"
 python-dateutil = "^2.8.2"
-jsonschema = "^4.16.0"
+jsonschema = "^4.17.3"
 deprecated = "^1.2.13"
 dnspython = "^2.2.1"
 defang = "^0.5.3"
-extract_msg = {version = "^0.36.4", optional = true}
+extract_msg = {version = "^0.38.4", optional = true}
 RTFDE = {version = "^0.0.2", optional = true}
 oletools = {version = "^0.60.1", optional = true}
 python-magic = {version = "^0.4.27", optional = true}
 pydeep = {version = "^0.4", optional = true}
-lief = {version = "^0.12.2", optional = true}
+lief = {version = "^0.12.3", optional = true}
 beautifulsoup4 = {version = "^4.11.1", optional = true}
 validators = {version = "^0.20.0", optional = true}
-sphinx-autodoc-typehints = {version = "^1.19.4", optional = true}
+sphinx-autodoc-typehints = {version = "^1.19.5", optional = true}
 recommonmark = {version = "^0.7.1", optional = true}
-reportlab = {version = "^3.6.11", optional = true}
+reportlab = {version = "^3.6.12", optional = true}
 pyfaup = {version = "^1.2", optional = false}
-urllib3 = {extras = ["brotli"], version = "^1.26.12", optional = true}
-pymisp = "^2.4.162.1"
+urllib3 = {extras = ["brotli"], version = "^1.26.13", optional = true}
+pymisp = "^2.4.166"
 flask = "^2.2.2"
 flask-bootstrap = "^3.3.7.1"
 gunicorn = "^20.1.0"
-chardet = "^5.0.0"
+chardet = "^5.1.0"
 aiosmtpd = "^1.4.2"
 
 [tool.poetry.extras]
@@ -55,10 +55,10 @@ nose = "^1.3.7"
 coveralls = "^3.3.1"
 codecov = "^2.1.12"
 requests-mock = "^1.10.0"
-mypy = "^0.982"
-flake8 = "^5.0.4"
-ipython = "^8.5.0"
-jupyterlab = "^3.4.8"
+mypy = "^0.991"
+flake8 = "^6.0.0"
+ipython = "^8.7.0"
+jupyterlab = "^3.5.1"
 
 [build-system]
 requires = ["poetry_core>=1.0", "setuptools"]
