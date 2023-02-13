@@ -57,7 +57,7 @@ codecov = "^2.1.12"
 requests-mock = "^1.10.0"
 mypy = "^0.991"
 flake8 = "^6.0.0"
-ipython = "^8.7.0"
+ipython = "^8.10.0"
 jupyterlab = "^3.5.1"
 
 [build-system]
