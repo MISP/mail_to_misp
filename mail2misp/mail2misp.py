@@ -11,10 +11,10 @@ from email import message_from_bytes, policy, message
 
 from . import urlmarker
 from . import hashmarker
-from pyfaup.faup import Faup
+from pyfaup.faup import Faup  # type: ignore
 from pymisp import ExpandedPyMISP, MISPEvent, MISPObject, MISPSighting, InvalidMISPObject
 from pymisp.tools import EMailObject, make_binary_objects, VTReportObject
-from defang import refang
+from defang import refang  # type: ignore
 try:
     import dns.resolver
     HAS_DNS = True
