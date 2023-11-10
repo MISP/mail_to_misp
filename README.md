@@ -73,11 +73,15 @@ The implemented workflow is mainly for mail servers like Postfix. Client side im
 
 `Email -> mail_to_misp`
 
-2. Apple Mail [unmaintained]
+2. Office 365
+
+`Email -> Outlook -> O365MISPClient -> mail_to_misp`
+
+3. Apple Mail [unmaintained]
 
 `Email -> Apple Mail -> Mail rule -> AppleScript -> mail_to_misp -> PyMISP -> MISP`
 
-3. Mozilla Thunderbird [unmaintained]
+4. Mozilla Thunderbird [unmaintained]
 
 `Email -> Thunderbird -> Mail rule -> filterscript -> thunderbird_wrapper -> mail_to_misp -> PyMISP -> MISP`
 
@@ -119,6 +123,15 @@ $ sudo chmod 770 /etc/authbind/byport/25
 4. Run fake_smtp.py
 
 `$ python3 fake_smtp.py`
+
+### Office 365
+- Full [documentation](MUA/Microsoft/Office365/README.md) for getting started in MUA/Microsoft/Office365
+- Built-in O365MISPClient for Mail2MISP
+- Uses new Mail2MISP methods: `.load_o365_email` and `.process_o365_email_body`
+
+Run mail_to_misp_o365.py to get the last 1 day of messages
+
+`$ python3 mail_to_misp_0365.py -nd 1`
 
 ### Apple Mail [unmaintained]
 
@@ -192,6 +205,10 @@ poetry install -E fileobjects -E openioc -E virustotal -E email -E url
 - urlmarker from https://github.com/rcompton/ryancompton.net/blob/master/assets/praw_drugs/urlmarker.py (contained in this project)
 - ftfy from https://github.com/LuminosoInsight/python-ftfy (to fix unicode text)
 - defang from https://github.com/Rafiot/defang.git (fork of: https://bitbucket.org/johannestaas/defang)
+
+### Office 365
+
+- O365 from https://github.com/O365/python-o365
 
 ### Thunderbird [unmaintained]
 

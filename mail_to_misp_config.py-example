@@ -11,6 +11,18 @@ default_analysis = 1
 id_tag = 'host:m2m:tld'
 freetext = False
 
+# O365MISPClient config
+o365_freetext = False  # must be enabled in addition to the above freetext to use this on o365 email messages
+o365_client_id = 'YOUR_O365_CLIENT_ID'
+o365_client_secret = 'YOUR_O365_CLIENT_SECRET'
+o365_tenant_id = 'YOUR_O365_TENANT_ID'
+o365_resource = 'YOUR_O365_INBOX'  # misp@yourdomain.com or whatever inbox you are reading mail from
+o365_scopes = [
+    'offline_access',  # Highly recommended to add this. If not you will have to re-authenticate every hour.
+    'https://graph.microsoft.com/Mail.Read',  # To read my mailbox
+    # 'https://graph.microsoft.com/Mail.Read.Shared'  # To read another user/shared mailbox
+]
+
 body_config_prefix = 'm2m'  # every line in the body starting with this value will be skipped from the IOCs
 m2m_key = 'YOUSETYOURKEYHERE'
 m2m_benign_attachment_keyword = 'benign'
@@ -24,7 +36,8 @@ ignore_carrier_mail = False
 ignore_nullsize_attachments = False
 
 excludelist = ('google.com', 'microsoft.com')
-externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net')
+externallist = ('virustotal.com', 'malwr.com', 'hybrid-analysis.com', 'emergingthreats.net', 'urlscan.io',
+                'abuse.ch', 'tria.ge', 'bleepingcomputer.com', 'any.run', 'urlvoid.com', 'intezer.com')
 internallist = ('internal.system.local')
 noidsflaglist = ('myexternalip.com', 'ipinfo.io', 'icanhazip.com', 'wtfismyip.com', 'ipecho.net',
                  'api.ipify.org', 'checkip.amazonaws.com', 'whatismyipaddress.com', 'google.com',
@@ -48,13 +61,16 @@ sighting_source = "YOUR_MAIL_TO_MISP_IDENTIFIER"
 
 # Remove "Re:", "Fwd:" and {Spam?} from subject
 # add: "[\(\[].*?[\)\]]" to remove everything between [] and (): i.e. [tag]
-removelist = (r"Re:", r"Fwd:", r"\{Spam\?\} ")
+removelist = (r"Re:", r"Fwd:", r"\{Spam\?\} ", r"RE:", r"FW:")
 
 # TLP tag setup
 # Tuples contain different variations of spelling
-tlptags = {'tlp:amber': ['tlp:amber', 'tlp: amber', 'tlp amber'],
-           'tlp:green': ['tlp:green', 'tlp: green', 'tlp green'],
-           'tlp:white': ['tlp:white', 'tlp: white', 'tlp white']
+tlptags = {'tlp:amber': ['tlp:amber', 'tlp: amber', 'tlp amber', 'tlp :amber'],
+           'tlp:amber+strict': ['tlp:amber+strict', 'tlp: amber+strict', 'tlp amber+strict', 'tlp :amber+strict'],
+           'tlp:green': ['tlp:green', 'tlp: green', 'tlp green', 'tlp :green'],
+           'tlp:white': ['tlp:white', 'tlp: white', 'tlp white', 'tlp :white'],
+           'tlp:clear': ['tlp:clear', 'tlp: clear', 'tlp clear', 'tlp :clear'],
+           'tlp:red': ['tlp:red', 'tlp: red', 'tlp red', 'tlp :red']
            }
 tlptag_default = sorted(tlptags.keys())[0]
 
@@ -65,11 +81,26 @@ malwaretags = {'locky': ['ecsirt:malicious-code="ransomware"', 'misp-galaxy:rans
                'Pony': ['misp-galaxy:tool="Hancitor"'],
                'ursnif': ['misp-galaxy:tool="Snifula"'],
                'NanoCore': ['misp-galaxy:tool="NanoCoreRAT"'],
-               'trickbot': ['misp-galaxy:tool="Trick Bot"']
+               'trickbot': ['misp-galaxy:tool="Trick Bot"'],
+               'agenttesla': ['misp-galaxy:mitre-malware="Agent Tesla - S0331"'],
+               'formbook': ['misp-galaxy:malpedia="Formbook"'],
+               'remcos': ['misp-galaxy:mitre-tool="Remcos - S0332"'],
+               'snake keylogger': ['misp-galaxy:malpedia="404 Keylogger"'],
+               'icedid': ['misp-galaxy:malpedia="IcedID"'],
+               'zloader': ['misp-galaxy:malpedia="Zloader"'],
+               'lokibot': ['misp-galaxy:mitre-malware="Lokibot - S0447"'],
+               'valyria': ['misp-galaxy:malpedia="POWERSTATS"'],
+               'guloader': ['misp-galaxy:mitre-malware="GuLoader - S0561"'],
+               'avemaria': ['misp-galaxy:mitre-malware="WarzoneRAT - S0670"'],
+               'warzone': ['misp-galaxy:mitre-malware="WarzoneRAT - S0670"'],
+               'hancitor': ['misp-galaxy:malpedia="Hancitor"'],
+               'async': ['misp-galaxy:malpedia="AsyncRAT"'],
+               'emotet': ['misp-galaxy:mitre-malware="Emotet - S0367"']
                }
 
 # Tags to be set depending on the presence of other tags
-dependingtags = {'tlp:white': ['circl:osint-feed']
+dependingtags = {'tlp:white': ['circl:osint-feed'],
+                 'tlp:clear': ['circl:osint-feed']
                  }
 
 # Known identifiers for forwarded messages

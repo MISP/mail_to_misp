@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import base64
 import re
 import syslog
 import html
@@ -8,13 +8,19 @@ import os
 from io import BytesIO
 from ipaddress import ip_address
 from email import message_from_bytes, policy, message
+from email.parser import BytesParser
 
-from . import urlmarker
-from . import hashmarker
+from . import urlmarker, hashmarker
 from pyfaup.faup import Faup  # type: ignore
 from pymisp import ExpandedPyMISP, MISPEvent, MISPObject, MISPSighting, InvalidMISPObject
 from pymisp.tools import EMailObject, make_binary_objects, VTReportObject
 from defang import refang  # type: ignore
+
+from datetime import datetime
+from O365 import Account
+from O365.message import Message
+from O365.utils import AWSS3Backend, AWSSecretsBackend, EnvTokenBackend, FileSystemTokenBackend, FirestoreBackend
+from typing import Iterator, List, Optional, Union
 try:
     import dns.resolver
     HAS_DNS = True
@@ -78,6 +84,41 @@ class Mail2MISP():
         self.misp_event.analysis = self.config.default_analysis
         self.misp_event.add_tag(self.config.id_tag)
 
+    def load_o365_email(self, msg: Message):
+        self.msg = msg
+
+        try:
+            self.sender = self.msg.sender.address
+        except Exception as ex:
+            self.sender = "<unknown sender>"
+            if self.debug:
+                syslog.syslog(ex)
+
+        try:
+            self.reply_to = self.msg.reply_to[0].address
+        except Exception as ex:
+            self.reply_to = None
+            if self.debug:
+                syslog.syslog(ex)
+
+        try:
+            self.subject = self.msg.subject
+            # remove words from subject
+            for removeword in self.config.removelist:
+                self.subject = re.sub(removeword, "", self.subject).strip()
+        except Exception as ex:
+            self.subject = "<subject could not be retrieved>"
+            if self.debug:
+                syslog.syslog(ex)
+
+        # initialize the MISP event
+        self.misp_event = MISPEvent()
+        self.misp_event.info = self.subject
+        self.misp_event.distribution = self.config.default_distribution
+        self.misp_event.threat_level_id = self.config.default_threat_level
+        self.misp_event.analysis = self.config.default_analysis
+        self.misp_event.add_tag(self.config.id_tag)
+
     def sighting(self, value, source):
         if self.offline:
             raise Exception('The script is running in offline mode, ')
@@ -121,6 +162,19 @@ class Mail2MISP():
                     if main_object:
                         self.misp_event.add_object(main_object)
                         [self.misp_event.add_object(section) for section in sections]
+        return forwarded_emails
+
+    def _find_o365_attached_forward(self, msg: Message):
+        forwarded_emails = []
+        if msg.has_attachments:
+            if msg.attachments.download_attachments():
+                for attachment in msg.attachments:
+                    if '.eml' in attachment.name:
+                        decoded_attachment = base64.b64decode(attachment.content)
+                        pseudofile = BytesIO(decoded_attachment)
+                        eml = BytesParser(policy=policy.default).parse(pseudofile)
+                        if isinstance(eml, message.EmailMessage):
+                            forwarded_emails.append(self.forwarded_email(pseudofile=pseudofile))
         return forwarded_emails
 
     def email_from_spamtrap(self):
@@ -196,6 +250,31 @@ class Mail2MISP():
         else:
             self.clean_email_body = ''
         self._find_attached_forward()
+
+    def process_o365_email_body(self):
+        if self.msg:
+            self.clean_email_body = html.unescape(self.msg.body)
+            if re.search(r"<div>You don't often get email from .*?</div>", self.clean_email_body):
+                self.clean_email_body = re.sub(r"<div>You don't often get email from .*?</div>", "", html.unescape(self.msg.body))
+            # Check if there are config lines in the body & convert them to a python dictionary:
+            #  <config.body_config_prefix>:<key>:<value> => {<key>: <value>}
+            self.config_from_email_body = {k.strip(): v.strip() for k, v in re.findall(f'{self.config.body_config_prefix}:(.*):(.*)', self.clean_email_body)}
+            if self.config_from_email_body:
+                # ... remove the config lines from the body
+                self.clean_email_body = re.sub(rf'^{self.config.body_config_prefix}.*\n?', '', html.unescape(self.msg.body), flags=re.MULTILINE)
+            # Check if autopublish key is present and valid
+            if self.config_from_email_body.get('m2mkey') == self.config.m2m_key:
+                if self.config_from_email_body.get('distribution') is not None:
+                    self.misp_event.distribution = self.config_from_email_body.get('distribution')
+                if self.config_from_email_body.get('threat_level') is not None:
+                    self.misp_event.threat_level_id = self.config_from_email_body.get('threat_level')
+                if self.config_from_email_body.get('analysis') is not None:
+                    self.misp_event.analysis = self.config_from_email_body.get('analysis')
+                if self.config_from_email_body.get('publish'):
+                    self.misp_event.publish()
+        else:
+            self.clean_email_body = ''
+        self._find_o365_attached_forward(self.msg)
 
     def process_body_iocs(self, email_object=None):
         if email_object:
@@ -416,7 +495,10 @@ class Mail2MISP():
             for value, source in self.sightings_to_add:
                 self.sighting(value, source)
         if self.config.freetext:
-            self.misp.freetext(event, string=self.original_mail.get_body(preferencelist=('html', 'plain')), adhereToWarninglists=self.config.enforcewarninglist)
+            if self.config.o365_freetext:
+                self.misp.freetext(event, string=self.clean_email_body, adhereToWarninglists=self.config.enforcewarninglist)
+            else:
+                self.misp.freetext(event, string=self.original_mail.get_body(preferencelist=('html', 'plain')), adhereToWarninglists=self.config.enforcewarninglist)
         return event
 
     def get_attached_emails(self, pseudofile):
@@ -438,3 +520,76 @@ class Mail2MISP():
                 # all attachments are identified as message.EmailMessage so filtering on extension for now.
                 forwarded_emails.append(BytesIO(attachment_content))
         return forwarded_emails
+
+    class O365MISPClient:
+        """
+        A client (MUA) to allow mail_to_misp to interact with Microsoft Graph and Office 365 API to get email messages.
+        """
+        def __init__(
+                self,
+                client_id: str,
+                client_secret: str,
+                tenant_id: str,
+                resource: str,
+                scopes: List[str],
+                token_backend: Optional[
+                    Union[AWSS3Backend, AWSSecretsBackend, EnvTokenBackend, FileSystemTokenBackend, FirestoreBackend]
+                ] = None,
+        ):
+            """
+            Init O365MISPClient
+            :param client_id: OAuth Client ID
+            :param client_secret: OAuth Client Secret
+            :param tenant_id: Your Tenant ID
+            :param resource: The email address you want to access
+            :param scopes: The permission scopes for the resource
+            :param token_backend: The backend used for storing OAuth token
+            """
+            self.scopes = scopes
+            self.resource = resource
+            self.o365_acct = Account(
+                credentials=(client_id, client_secret),
+                auth_flow_type='authorization',
+                tenant_id=tenant_id,
+                token_backend=token_backend
+            )
+            if not self.o365_acct.is_authenticated:
+                self.o365_acct.authenticate(scopes=self.scopes)
+            self.mailbox = self.o365_acct.mailbox(resource=self.resource)
+            self.inbox = self.mailbox.inbox_folder()
+            self.query_properties = [
+                'internet_message_headers',
+                'subject',
+                'body',
+                'unique_body',
+                'from',
+                'reply_to',
+                'is_read',
+                'is_draft',
+                'received_date_time',
+                'has_attachments',
+                'attachments'
+            ]
+
+        def get_email_messages(self, from_time: datetime, to_time: datetime, folder: Optional[str] = None) -> Iterator[Message]:
+            """
+            Get messages for a certain timeframe. Defaults to looking for messages in the Inbox folder, however by
+            supplying a folder name as a parameter you can change where to get the messages from.
+
+            :param from_time: start time to search for
+            :param to_time: end time to search for
+            :param folder: specific folder to get messages from (don't supply if getting from the inbox folder)
+            :return: an iterator of O365.messages.Message from the resource
+            """
+            query = self.mailbox.new_query().select(*self.query_properties)
+            # https://learn.microsoft.com/en-us/graph/api/resources/message?view=graph-rest-1.0#properties
+            query = query.chain('and').on_attribute('received_date_time').greater(from_time)
+            query = query.chain('and').on_attribute('received_date_time').less(to_time)
+
+            if folder:
+                messages = self.mailbox.get_folder(folder_name=folder).get_messages(query=query)
+            else:
+                messages = self.inbox.get_messages(query=query)
+
+            return messages
+
