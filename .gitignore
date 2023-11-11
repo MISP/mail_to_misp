@@ -113,3 +113,6 @@ storage/repl
 
 # Config files of running instance
 *config.py
+
+# python-o365 token file
+o365_token.txt
